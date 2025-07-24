@@ -1,0 +1,355 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User accounts
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String?
+  role            UserRole  @default(PARENT)
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  family          Family?   @relation(fields: [familyId], references: [id])
+  familyId        String?
+  childProfile    Child?
+  parentProfile   Parent?
+  sessions        Session[]
+}
+
+enum UserRole {
+  PARENT
+  CHILD
+  CAREGIVER
+}
+
+// Family unit
+model Family {
+  id              String    @id @default(cuid())
+  name            String
+  timezone        String    @default("America/New_York")
+  currency        String    @default("USD")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  users           User[]
+  children        Child[]
+  parents         Parent[]
+  tasks           Task[]
+  rewards         Reward[]
+  milestones      Milestone[]
+  settings        FamilySettings?
+}
+
+// Parent profile
+model Parent {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId        String
+  family          Family    @relation(fields: [familyId], references: [id])
+  isPrimary       Boolean   @default(false)
+  
+  // Preferences
+  notifications   String    @default("{}")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  createdTasks    Task[]
+  approvedTasks   TaskCompletion[]
+}
+
+// Child profile
+model Child {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId        String
+  family          Family    @relation(fields: [familyId], references: [id])
+  
+  // Profile
+  nickname        String
+  birthDate       DateTime
+  avatar          String?
+  theme           String    @default("candy")
+  soundEnabled    Boolean   @default(true)
+  
+  // Gamification
+  level           Int       @default(1)
+  xp              Int       @default(0)
+  totalStars      Int       @default(0)
+  currentCoins    Int       @default(0)
+  lifetimeCoins   Int       @default(0)
+  currentStreak   Int       @default(0)
+  longestStreak   Int       @default(0)
+  
+  // Screen time
+  dailyScreenMinutes     Int       @default(60)
+  bonusScreenMinutes     Int       @default(0)
+  usedScreenMinutes      Int       @default(0)
+  lastScreenReset        DateTime  @default(now())
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  assignedTasks   Task[]
+  completedTasks  TaskCompletion[]
+  earnedBadges    BadgeEarned[]
+  purchases       RewardPurchase[]
+  pet             VirtualPet?
+  learningScores  LearningScore[]
+}
+
+// Tasks/Chores
+model Task {
+  id              String    @id @default(cuid())
+  familyId        String
+  family          Family    @relation(fields: [familyId], references: [id])
+  createdById     String
+  createdBy       Parent    @relation(fields: [createdById], references: [id])
+  
+  // Task details
+  title           String
+  description     String?
+  icon            String?
+  difficulty      Int       @default(1) // 1-5
+  starValue       Int       @default(5)
+  category        String?
+  
+  // Assignment
+  assignedToId    String?
+  assignedTo      Child?    @relation(fields: [assignedToId], references: [id])
+  
+  // Scheduling
+  isRecurring     Boolean   @default(false)
+  recurringRule   String?   // { type: 'daily' | 'weekly' | 'custom', days: number[] }
+  dueDate         DateTime?
+  
+  // Status
+  isActive        Boolean   @default(true)
+  requiresProof   Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  completions     TaskCompletion[]
+}
+
+// Task completions
+model TaskCompletion {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(fields: [taskId], references: [id])
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Completion details
+  completedAt     DateTime  @default(now())
+  proofImage      String?
+  notes           String?
+  
+  // Approval
+  isApproved      Boolean   @default(false)
+  approvedById    String?
+  approvedBy      Parent?   @relation(fields: [approvedById], references: [id])
+  approvedAt      DateTime?
+  
+  // Rewards
+  starsAwarded    Int
+  bonusStars      Int       @default(0)
+  coinsAwarded    Int       @default(0)
+  
+  @@unique([taskId, childId, completedAt])
+}
+
+// Rewards marketplace
+model Reward {
+  id              String    @id @default(cuid())
+  familyId        String
+  family          Family    @relation(fields: [familyId], references: [id])
+  
+  // Reward details
+  title           String
+  description     String?
+  image           String?
+  category        String    // 'experience', 'item', 'privilege', 'screentime'
+  coinCost        Int
+  
+  // Availability
+  isActive        Boolean   @default(true)
+  quantity        Int?      // null = unlimited
+  expiresAt       DateTime?
+  
+  // Restrictions
+  minAge          Int?
+  maxAge          Int?
+  requiresApproval Boolean  @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  purchases       RewardPurchase[]
+}
+
+// Reward purchases
+model RewardPurchase {
+  id              String    @id @default(cuid())
+  rewardId        String
+  reward          Reward    @relation(fields: [rewardId], references: [id])
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Purchase details
+  purchasedAt     DateTime  @default(now())
+  coinCost        Int
+  
+  // Redemption
+  isRedeemed      Boolean   @default(false)
+  redeemedAt      DateTime?
+  
+  // Notes
+  notes           String?
+}
+
+// Badges system
+model Badge {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  description     String
+  icon            String
+  category        String    // 'streak', 'milestone', 'special'
+  rarity          String    // 'bronze', 'silver', 'gold', 'legendary'
+  
+  // Unlock criteria
+  criteria        String    // { type: 'streak_days', value: 7 }
+  
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  earned          BadgeEarned[]
+}
+
+model BadgeEarned {
+  id              String    @id @default(cuid())
+  badgeId         String
+  badge           Badge     @relation(fields: [badgeId], references: [id])
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  earnedAt        DateTime  @default(now())
+  
+  @@unique([badgeId, childId])
+}
+
+// Virtual Pet
+model VirtualPet {
+  id              String    @id @default(cuid())
+  childId         String    @unique
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Pet details
+  name            String
+  type            String    @default("dragon") // dragon, unicorn, robot, etc.
+  mood            String    @default("happy") // happy, neutral, sad, sleeping
+  level           Int       @default(1)
+  xp              Int       @default(0)
+  
+  // Care stats
+  happiness       Int       @default(100) // 0-100
+  energy          Int       @default(100) // 0-100
+  lastFed         DateTime  @default(now())
+  lastPlayed      DateTime  @default(now())
+  
+  // Customization (comma-separated for SQLite)
+  accessories     String    @default("") // 'hat,glasses,scarf'
+  color           String    @default("blue")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Family milestones/timeline
+model Milestone {
+  id              String    @id @default(cuid())
+  familyId        String
+  family          Family    @relation(fields: [familyId], references: [id])
+  
+  // Milestone details
+  title           String
+  description     String?
+  date            DateTime
+  category        String    // 'first', 'achievement', 'memory', 'quote'
+  
+  // Media (comma-separated for SQLite)
+  images          String    @default("")
+  
+  // Metadata (comma-separated for SQLite)
+  childrenIds     String    @default("")  // Comma-separated child IDs
+  tags            String    @default("")  // Comma-separated tags
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Learning/Education tracking
+model LearningScore {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Score details
+  subject         String    // 'math', 'reading', 'science'
+  score           Int       // 0-100
+  questionsAnswered Int
+  correctAnswers  Int
+  timeSpent       Int       // seconds
+  
+  completedAt     DateTime  @default(now())
+  
+  @@index([childId, subject, completedAt])
+}
+
+// Family settings
+model FamilySettings {
+  id              String    @id @default(cuid())
+  familyId        String    @unique
+  family          Family    @relation(fields: [familyId], references: [id])
+  
+  // Settings
+  starToCoinsRatio Float    @default(10) // 10 stars = 1 coin
+  dailyTaskLimit   Int?     // null = unlimited
+  screenTimeRules  String   @default("{}")
+  notificationPrefs String  @default("{}")
+  
+  // Features
+  enableCommunity  Boolean  @default(false)
+  enableLearning   Boolean  @default(true)
+  enablePets       Boolean  @default(true)
+  
+  updatedAt       DateTime  @updatedAt
+}
+
+// Session management
+model Session {
+  id              String    @id @default(cuid())
+  sessionToken    String    @unique
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires         DateTime
+  
+  @@index([userId])
+}
