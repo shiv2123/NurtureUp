@@ -21,27 +21,29 @@ export default async function ParentLayout({
   }
 
   return (
-    <div className="min-h-screen bg-off-white">
-      <header className="bg-white border-b border-slate-200 shadow-soft">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-black">NurtureUp</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-display">NurtureUp</h1>
               {/* <FamilySwitcher /> */}
             </div>
             <div className="flex items-center space-x-4">
               <NotificationBell />
-              <span className="text-sm text-black">
-                Welcome, {session.user.name}
+              <span className="text-sm font-medium text-gray-700">
+                Welcome, {session.user?.name || 'User'}
               </span>
             </div>
           </div>
         </div>
       </header>
-      <div className="flex">
+      <div className="flex max-w-7xl mx-auto">
         <ParentNavigation />
-        <main className="flex-1 p-6">
-          {children}
+        <main className="flex-1 p-6 lg:p-8 bg-white min-h-screen">
+          <div className="max-w-6xl">
+            {children}
+          </div>
         </main>
       </div>
     </div>

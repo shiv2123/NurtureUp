@@ -6,9 +6,10 @@ import { sendNotificationToRole } from '@/lib/pusher'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { purchaseId: string } }
+  { params }: { params: Promise<{ purchaseId: string }> }
 ) {
   try {
+    const { purchaseId } = await params
     const session = await getServerSession(authOptions)
     if (!session?.user.familyId || session.user.role !== 'PARENT') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -27,7 +28,7 @@ export async function POST(
     // Fetch the purchase with related data
     const purchase = await prisma.rewardPurchase.findFirst({
       where: {
-        id: params.purchaseId,
+        id: purchaseId,
         reward: {
           familyId: session.user.familyId
         }

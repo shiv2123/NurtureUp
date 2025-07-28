@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { RecurringTaskService } from '@/lib/recurringTaskService'
+import { sendNotificationToRole } from '@/lib/pusher'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,9 +24,37 @@ export async function POST(request: NextRequest) {
     const recurringTaskService = RecurringTaskService.getInstance()
     const result = await recurringTaskService.triggerRecurringTaskGeneration()
 
+    // Send notifications for each family that got new tasks
+    if (result.created > 0) {
+      // Group tasks by family
+      const tasksByFamily = new Map<string, any[]>()
+      
+      for (const task of result.tasks) {
+        if (!tasksByFamily.has(task.familyId)) {
+          tasksByFamily.set(task.familyId, [])
+        }
+        tasksByFamily.get(task.familyId)!.push(task)
+      }
+
+      // Send notifications to each family
+      for (const [familyId, familyTasks] of tasksByFamily) {
+        await sendNotificationToRole(familyId, 'CHILD', {
+          type: 'new_recurring_tasks',
+          title: 'Fresh Daily Quests! ⚡',
+          message: `${familyTasks.length} new quest${familyTasks.length > 1 ? 's' : ''} ready for adventure!`,
+          data: {
+            newTasksCount: familyTasks.length,
+            refreshQuests: true,
+            generatedAt: new Date().toISOString()
+          }
+        })
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: `Generated ${result.created} recurring task instances`,
+      timestamp: new Date().toISOString(),
       ...result
     })
   } catch (error) {

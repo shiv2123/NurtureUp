@@ -21,19 +21,19 @@ export default async function ChildLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-primary-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Child Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-indigo-100 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-3">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-blue-100 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-bold text-indigo-600 font-child">
+              <h1 className="text-xl font-bold text-blue-600 font-child">
                 🌟 Adventure Time
               </h1>
             </div>
             <div className="flex items-center space-x-4">
               <NotificationBell />
-              <span className="text-sm text-indigo-600 font-child">
+              <span className="text-sm text-blue-600 font-child font-medium">
                 Hey, {session.user.name}! 👋
               </span>
             </div>
@@ -41,7 +41,7 @@ export default async function ChildLayout({
         </div>
       </header>
       
-      <main className="pb-20">
+      <main className="pb-24 max-w-4xl mx-auto px-4">
         {children}
       </main>
       <ChildNavigation />

@@ -14,9 +14,10 @@ const approvalSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { completionId: string } }
+  { params }: { params: Promise<{ completionId: string }> }
 ) {
   try {
+    const { completionId } = await params
     const session = await getServerSession(authOptions)
     
     if (!session || session.user.role !== 'PARENT') {
@@ -34,7 +35,7 @@ export async function POST(
 
     const completion = await prisma.taskCompletion.findFirst({
       where: {
-        id: params.completionId,
+        id: completionId,
         task: { familyId: parent.familyId },
         isApproved: false
       },

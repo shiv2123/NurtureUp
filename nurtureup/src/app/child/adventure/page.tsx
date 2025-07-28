@@ -57,60 +57,62 @@ export default async function AdventurePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="py-6 space-y-8">
       {/* Hero Welcome Panel */}
-      <div className="bg-gradient-to-r from-soft-coral via-sunny-yellow to-mint-green rounded-3xl p-6 text-center relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl p-8 text-center relative overflow-hidden shadow-lg">
         <div className="relative z-10">
-          <div className="text-4xl mb-2">{child.avatar || '🌟'}</div>
-          <h1 className="text-2xl font-bold text-white mb-2 font-child">
+          <div className="text-5xl mb-3">{child.avatar || '🌟'}</div>
+          <h1 className="text-3xl font-bold text-white mb-3 font-child">
             Welcome back, {child.nickname}!
           </h1>
-          <p className="text-white/90">
+          <p className="text-white/90 text-lg font-child">
             Ready for today's magical adventures?
           </p>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-soft-coral/20 to-mint-green/20" />
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-sage-green/10 border-sage-green/20">
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-sage-green/20 flex items-center justify-center mx-auto mb-2">
-              <Target className="w-6 h-6 text-sage-green" />
+        <Card className="bg-green-50 border-green-200 shadow-sm">
+          <CardContent className="p-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+              <Target className="w-6 h-6 text-green-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-gray">{todaysCompletedTasks}</div>
-            <div className="text-sm text-black">Quests Done</div>
+            <div className="text-2xl font-bold text-gray-900 font-child">{todaysCompletedTasks}</div>
+            <div className="text-sm text-gray-600 font-child">Quests Done</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-warning/10 border-warning/20">
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-warning/20 flex items-center justify-center mx-auto mb-2">
-              <Star className="w-6 h-6 text-warning" />
+        <Card className="bg-yellow-50 border-yellow-200 shadow-sm">
+          <CardContent className="p-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-3">
+              <Star className="w-6 h-6 text-yellow-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-gray">{child.totalStars}</div>
-            <div className="text-sm text-black">Total Stars</div>
+            <div className="text-2xl font-bold text-gray-900 font-child">{child.totalStars}</div>
+            <div className="text-sm text-gray-600 font-child">Total Stars</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-mint-green/10 border-mint-green/20">
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-mint-green/20 flex items-center justify-center mx-auto mb-2">
-              <Coins className="w-6 h-6 text-mint-green" />
+        <Card className="bg-blue-50 border-blue-200 shadow-sm">
+          <CardContent className="p-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+              <Coins className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-gray">{child.currentCoins}</div>
-            <div className="text-sm text-black">Coins</div>
+            <div className="text-2xl font-bold text-gray-900 font-child">{child.currentCoins}</div>
+            <div className="text-sm text-gray-600 font-child">Coins</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-sky-blue/10 border-sky-blue/20">
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-sky-blue/20 flex items-center justify-center mx-auto mb-2">
-              <Zap className="w-6 h-6 text-sky-blue" />
+        <Card className="bg-purple-50 border-purple-200 shadow-sm">
+          <CardContent className="p-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+              <Zap className="w-6 h-6 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-gray">{child.currentStreak}</div>
-            <div className="text-sm text-black">Day Streak</div>
+            <div className="text-2xl font-bold text-gray-900 font-child">{child.currentStreak}</div>
+            <div className="text-sm text-gray-600 font-child">Day Streak</div>
           </CardContent>
         </Card>
       </div>
@@ -119,31 +121,33 @@ export default async function AdventurePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Quests */}
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-child">
-                <Target className="w-5 h-5" />
+          <Card className="shadow-sm border-gray-200">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+              <CardTitle className="flex items-center gap-2 font-child text-gray-900 text-lg">
+                <Target className="w-5 h-5 text-blue-600" />
                 Today's Quests
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="space-y-4">
                 {child.assignedTasks.slice(0, 4).map((task) => (
                   <div 
                     key={task.id} 
-                    className="flex items-center justify-between p-4 bg-slate-50 rounded-xl"
+                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        task.completions.length > 0 ? 'bg-success text-white' : 'bg-slate-200'
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                        task.completions.length > 0 
+                          ? 'bg-green-100 text-green-600' 
+                          : 'bg-gray-100 text-gray-400'
                       }`}>
                         {task.completions.length > 0 ? '✓' : '○'}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-gray">{task.title}</div>
-                        <div className="text-sm text-black">
+                        <div className="font-medium text-gray-900 font-child">{task.title}</div>
+                        <div className="text-sm text-gray-600 mt-1">
                           {Array.from({ length: task.starValue }).map((_, i) => (
-                            <span key={i}>⭐</span>
+                            <span key={i} className="text-yellow-400">⭐</span>
                           ))}
                         </div>
                       </div>
@@ -152,9 +156,10 @@ export default async function AdventurePage() {
                 ))}
                 
                 {child.assignedTasks.length === 0 && (
-                  <div className="text-center py-8 text-black">
-                    <p>No quests available right now!</p>
-                    <p className="text-sm">Check back later for new adventures.</p>
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🎯</div>
+                    <p className="text-gray-600 font-child font-medium">No quests available right now!</p>
+                    <p className="text-sm text-gray-500 font-child mt-2">Check back later for new adventures.</p>
                   </div>
                 )}
               </div>
@@ -171,30 +176,30 @@ export default async function AdventurePage() {
           <ScreenTimeTracker initialData={screenTimeData} />
 
           {/* Recent Badges */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-child">
-                <Trophy className="w-5 h-5" />
+          <Card className="shadow-sm border-gray-200">
+            <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-yellow-50 to-orange-50">
+              <CardTitle className="flex items-center gap-2 font-child text-gray-900">
+                <Trophy className="w-5 h-5 text-yellow-600" />
                 Recent Badges
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {child.earnedBadges.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {child.earnedBadges.map((earnedBadge) => (
-                    <div key={earnedBadge.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                      <div className="text-2xl">{earnedBadge.badge.icon}</div>
+                    <div key={earnedBadge.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100">
+                      <div className="text-3xl">{earnedBadge.badge.icon}</div>
                       <div>
-                        <div className="font-medium text-slate-gray">{earnedBadge.badge.name}</div>
-                        <div className="text-sm text-black">{earnedBadge.badge.description}</div>
+                        <div className="font-medium text-gray-900 font-child">{earnedBadge.badge.name}</div>
+                        <div className="text-sm text-gray-600 font-child">{earnedBadge.badge.description}</div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6">
-                  <div className="text-4xl mb-2">🏆</div>
-                  <p className="text-black text-sm">
+                <div className="text-center py-8">
+                  <div className="text-5xl mb-3">🏆</div>
+                  <p className="text-gray-600 font-child font-medium">
                     Complete quests to earn your first badge!
                   </p>
                 </div>
@@ -203,12 +208,12 @@ export default async function AdventurePage() {
           </Card>
 
           {/* Wallet Preview */}
-          <Card className="bg-gradient-to-br from-warning/10 to-mint-green/10 border-warning/20">
+          <Card className="shadow-sm border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl mb-2">💰</div>
-              <div className="text-2xl font-bold text-slate-gray mb-1">{child.currentCoins}</div>
-              <div className="text-sm text-black mb-3">Coins Available</div>
-              <Button variant="warning" size="sm" className="w-full">
+              <div className="text-4xl mb-3">💰</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2 font-child">{child.currentCoins}</div>
+              <div className="text-sm text-gray-600 mb-4 font-child">Coins Available</div>
+              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-child">
                 <Coins className="w-4 h-4 mr-2" />
                 Visit Store
               </Button>

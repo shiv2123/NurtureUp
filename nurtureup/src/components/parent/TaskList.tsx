@@ -80,7 +80,7 @@ export function TaskList() {
           </CardHeader>
           <CardContent>
             {task.description && <p className="mb-2 text-black">{task.description}</p>}
-            {task.assignedTo && (
+            {task.assignedTo?.user && (
               <div className="text-sm text-black mt-2">
                 Assigned to: {task.assignedTo.user.name || task.assignedTo.user.email}
               </div>

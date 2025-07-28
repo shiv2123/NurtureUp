@@ -52,7 +52,7 @@ export default async function ChildrenPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-gray">
+        <h1 className="text-3xl font-bold text-black">
           Family Members
         </h1>
       </div>

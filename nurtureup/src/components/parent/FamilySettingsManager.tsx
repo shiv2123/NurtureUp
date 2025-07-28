@@ -133,7 +133,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                           <div className="text-2xl">{child.avatar || '👤'}</div>
                           <div>
                             <div className="font-medium">{child.nickname}</div>
-                            <div className="text-sm text-black">{child.user.email}</div>
+                            <div className="text-sm text-black">{child.user?.email}</div>
                           </div>
                         </div>
                         <div className="text-sm text-black">

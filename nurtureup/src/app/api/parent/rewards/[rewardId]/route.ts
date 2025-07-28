@@ -17,8 +17,9 @@ const updateRewardSchema = z.object({
   isActive: z.boolean().optional()
 })
 
-export async function PATCH(request: NextRequest, { params }: { params: { rewardId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ rewardId: string }> }) {
   try {
+    const { rewardId } = await params
     const session = await getServerSession(authOptions)
     if (!session?.user.familyId || session.user.role !== 'PARENT') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -29,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { reward
 
     const reward = await prisma.reward.update({
       where: {
-        id: params.rewardId,
+        id: rewardId,
         familyId: session.user.familyId
       },
       data: validatedData
@@ -45,8 +46,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { reward
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { rewardId: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ rewardId: string }> }) {
   try {
+    const { rewardId } = await params
     const session = await getServerSession(authOptions)
     if (!session?.user.familyId || session.user.role !== 'PARENT') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -54,7 +56,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { rewar
 
     await prisma.reward.delete({
       where: {
-        id: params.rewardId,
+        id: rewardId,
         familyId: session.user.familyId
       }
     })

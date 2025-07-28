@@ -4,21 +4,21 @@ import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-xl font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:scale-105 active:scale-95',
   {
     variants: {
       variant: {
-        default: 'bg-sage-green text-white hover:bg-sage-green/90 focus-visible:ring-sage-green shadow-sm',
-        primary: 'bg-sky-blue text-black hover:bg-sky-blue/90 focus-visible:ring-sky-blue shadow-sm',
-        secondary: 'bg-slate-gray text-white hover:bg-slate-gray/90 focus-visible:ring-slate-gray shadow-sm',
-        outline: 'border-2 border-slate-gray text-black hover:bg-slate-gray/10 focus-visible:ring-slate-gray',
-        ghost: 'text-black hover:bg-slate-gray/10 focus-visible:ring-slate-gray',
-        coral: 'bg-soft-coral text-black hover:bg-soft-coral/90 focus-visible:ring-soft-coral shadow-sm',
-        yellow: 'bg-sunny-yellow text-black hover:bg-sunny-yellow/90 focus-visible:ring-sunny-yellow shadow-sm',
-        mint: 'bg-mint-green text-black hover:bg-mint-green/90 focus-visible:ring-mint-green shadow-sm',
-        success: 'bg-success text-white hover:bg-success/90 focus-visible:ring-success shadow-sm',
-        warning: 'bg-warning text-white hover:bg-warning/90 focus-visible:ring-warning shadow-sm',
-        destructive: 'bg-error text-white hover:bg-error/90 focus-visible:ring-error shadow-sm'
+        default: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500 shadow-sm',
+        primary: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500 shadow-sm',
+        secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus-visible:ring-gray-500 shadow-sm',
+        outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-gray-500',
+        ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-500',
+        coral: 'bg-pink-500 text-white hover:bg-pink-600 focus-visible:ring-pink-500 shadow-sm',
+        yellow: 'bg-yellow-500 text-white hover:bg-yellow-600 focus-visible:ring-yellow-500 shadow-sm',
+        mint: 'bg-green-500 text-white hover:bg-green-600 focus-visible:ring-green-500 shadow-sm',
+        success: 'bg-green-600 text-white hover:bg-green-700 focus-visible:ring-green-500 shadow-sm',
+        warning: 'bg-amber-500 text-white hover:bg-amber-600 focus-visible:ring-amber-500 shadow-sm',
+        destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 shadow-sm'
       },
       size: {
         default: 'h-10 px-4 py-2 text-sm',

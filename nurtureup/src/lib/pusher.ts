@@ -28,6 +28,7 @@ export type NotificationType =
   | 'reward_purchased'
   | 'milestone_added'
   | 'new_task'
+  | 'new_recurring_tasks'
 
 export interface Notification {
   id: string

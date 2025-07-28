@@ -69,16 +69,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('Looking for parent with userId:', session.user.id)
     const parent = await prisma.parent.findUnique({
       where: { userId: session.user.id }
     })
+    console.log('Found parent:', parent)
 
     if (!parent) {
       return NextResponse.json({ error: 'Parent profile not found' }, { status: 404 })
     }
 
     const body = await request.json()
-    const validatedData = createTaskSchema.parse(body)
+    console.log('Received task data:', body)
+    
+    let validatedData
+    try {
+      validatedData = createTaskSchema.parse(body)
+      console.log('Validated task data:', validatedData)
+    } catch (validationError) {
+      console.error('Task validation error:', validationError)
+      return NextResponse.json(
+        { error: 'Invalid task data provided', details: validationError },
+        { status: 400 }
+      )
+    }
 
     // Validate recurring rule if provided
     if (validatedData.isRecurring && validatedData.recurringRule) {
@@ -93,15 +107,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const task = await prisma.task.create({
-      data: {
-        ...validatedData,
-        familyId: session.user.familyId,
-        createdById: parent.id,
-        recurringRule: validatedData.recurringRule ? JSON.stringify(validatedData.recurringRule) : undefined,
-        dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : undefined
-      }
-    })
+    let task
+    try {
+      task = await prisma.task.create({
+        data: {
+          ...validatedData,
+          familyId: session.user.familyId,
+          createdById: parent.id,
+          recurringRule: validatedData.recurringRule ? JSON.stringify(validatedData.recurringRule) : undefined,
+          dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : undefined
+        }
+      })
+    } catch (dbError) {
+      console.error('Database error creating task:', dbError)
+      return NextResponse.json(
+        { error: 'Database error creating task' },
+        { status: 500 }
+      )
+    }
 
     // If not assigned to specific child, assign to all children
     if (!validatedData.assignedToId) {
@@ -140,17 +163,21 @@ export async function POST(request: NextRequest) {
       }
       
       // Also notify all children via role channel
-      await sendNotificationToRole(session.user.familyId, 'CHILD', {
-        type: 'new_task',
-        title: 'New Quest Available!',
-        message: `New quest "${validatedData.title}" is ready! ⭐ ${validatedData.starValue}`,
-        data: {
-          taskTitle: validatedData.title,
-          starValue: validatedData.starValue,
-          isNewTask: true,
-          refreshQuests: true
-        }
-      })
+      try {
+        await sendNotificationToRole(session.user.familyId, 'CHILD', {
+          type: 'new_task',
+          title: 'New Quest Available!',
+          message: `New quest "${validatedData.title}" is ready! ⭐ ${validatedData.starValue}`,
+          data: {
+            taskTitle: validatedData.title,
+            starValue: validatedData.starValue,
+            isNewTask: true,
+            refreshQuests: true
+          }
+        })
+      } catch (error) {
+        console.warn('Failed to send notification to children:', error)
+      }
     } else {
       // Task assigned to specific child
       const child = await prisma.child.findUnique({
@@ -160,17 +187,21 @@ export async function POST(request: NextRequest) {
       
       if (child) {
         // Send real-time notification to specific child
-        await sendNotificationToUser(child.userId, session.user.familyId, {
-          type: 'new_task',
-          title: 'New Quest Available!',
-          message: `New quest "${validatedData.title}" is ready for you! ⭐ ${validatedData.starValue}`,
-          data: {
-            taskId: task.id,
-            taskTitle: validatedData.title,
-            starValue: validatedData.starValue,
-            isNewTask: true
-          }
-        })
+        try {
+          await sendNotificationToUser(child.userId, session.user.familyId, {
+            type: 'new_task',
+            title: 'New Quest Available!',
+            message: `New quest "${validatedData.title}" is ready for you! ⭐ ${validatedData.starValue}`,
+            data: {
+              taskId: task.id,
+              taskTitle: validatedData.title,
+              starValue: validatedData.starValue,
+              isNewTask: true
+            }
+          })
+        } catch (error) {
+          console.warn('Failed to send notification to child:', error)
+        }
       }
     }
 

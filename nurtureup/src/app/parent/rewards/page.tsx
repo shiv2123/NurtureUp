@@ -33,7 +33,7 @@ export default function RewardsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-gray">Reward Marketplace</h1>
+          <h1 className="text-3xl font-bold text-black">Reward Marketplace</h1>
           <p className="text-black mt-1">
             Create and manage exciting rewards for your kids
           </p>
@@ -53,7 +53,7 @@ export default function RewardsPage() {
                 <Gift className="w-5 h-5 text-sage-green" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">8</div>
+                <div className="text-2xl font-bold text-black">8</div>
                 <div className="text-sm text-black">Active Rewards</div>
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function RewardsPage() {
                 <TrendingUp className="w-5 h-5 text-soft-coral" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">24</div>
+                <div className="text-2xl font-bold text-black">24</div>
                 <div className="text-sm text-black">Purchased This Week</div>
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function RewardsPage() {
                 <Clock className="w-5 h-5 text-sky-blue" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">5</div>
+                <div className="text-2xl font-bold text-black">5</div>
                 <div className="text-sm text-black">Pending Approval</div>
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function RewardsPage() {
                 <DollarSign className="w-5 h-5 text-warning" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">125</div>
+                <div className="text-2xl font-bold text-black">125</div>
                 <div className="text-sm text-black">Avg Coins Spent</div>
               </div>
             </div>

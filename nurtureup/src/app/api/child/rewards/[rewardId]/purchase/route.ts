@@ -5,9 +5,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { rewardId: string } }
+  { params }: { params: Promise<{ rewardId: string }> }
 ) {
   try {
+    const { rewardId } = await params
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== 'CHILD') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -22,7 +23,7 @@ export async function POST(
 
     const reward = await prisma.reward.findFirst({
       where: {
-        id: params.rewardId,
+        id: rewardId,
         familyId: child.familyId,
         isActive: true
       }

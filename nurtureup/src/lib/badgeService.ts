@@ -202,11 +202,19 @@ export class BadgeService {
   static async updateChildStreak(childId: string) {
     const streak = await this.calculateCurrentStreak(childId)
     
+    // Get current child data to compare with longest streak
+    const child = await prisma.child.findUnique({
+      where: { id: childId },
+      select: { longestStreak: true }
+    })
+    
+    if (!child) return streak
+    
     await prisma.child.update({
       where: { id: childId },
       data: { 
         currentStreak: streak,
-        longestStreak: { max: streak }
+        longestStreak: Math.max(streak, child.longestStreak)
       }
     })
 

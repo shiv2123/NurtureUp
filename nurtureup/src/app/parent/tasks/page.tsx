@@ -30,16 +30,39 @@ export default function TasksPage() {
 
   const handleCreateTask = async (taskData: any) => {
     try {
+      // Transform the data to match API expectations
+      const transformedData = {
+        ...taskData,
+        // Convert recurringDays to recurringRule format
+        recurringRule: taskData.isRecurring && taskData.recurringDays ? {
+          type: 'weekly' as const,
+          days: taskData.recurringDays
+        } : undefined
+      }
+      
+      // Remove the recurringDays field since we've transformed it
+      delete transformedData.recurringDays
+
+      console.log('Sending task data:', transformedData)
+
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(taskData),
+        body: JSON.stringify(transformedData),
       })
 
       if (!res.ok) {
-        throw new Error('Failed to create task')
+        let errorMessage = 'Failed to create task'
+        try {
+          const errorData = await res.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // If response is not JSON, use status text or default message
+          errorMessage = res.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
 
       setRefreshKey(k => k + 1)
@@ -54,7 +77,7 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-gray">Quest Manager</h1>
+          <h1 className="text-3xl font-bold text-black">Quest Manager</h1>
           <p className="text-black mt-1">
             Create and manage magical quests for your family
           </p>
@@ -78,7 +101,7 @@ export default function TasksPage() {
                 <Target className="w-5 h-5 text-sage-green" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">12</div>
+                <div className="text-2xl font-bold text-black">12</div>
                 <div className="text-sm text-black">Active Quests</div>
               </div>
             </div>
@@ -92,7 +115,7 @@ export default function TasksPage() {
                 <TrendingUp className="w-5 h-5 text-soft-coral" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">89%</div>
+                <div className="text-2xl font-bold text-black">89%</div>
                 <div className="text-sm text-black">Completion Rate</div>
               </div>
             </div>
@@ -106,7 +129,7 @@ export default function TasksPage() {
                 <Clock className="w-5 h-5 text-sky-blue" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">3</div>
+                <div className="text-2xl font-bold text-black">3</div>
                 <div className="text-sm text-black">Pending Approval</div>
               </div>
             </div>
@@ -120,7 +143,7 @@ export default function TasksPage() {
                 <Sparkles className="w-5 h-5 text-mint-green" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-gray">247</div>
+                <div className="text-2xl font-bold text-black">247</div>
                 <div className="text-sm text-black">Stars Earned</div>
               </div>
             </div>

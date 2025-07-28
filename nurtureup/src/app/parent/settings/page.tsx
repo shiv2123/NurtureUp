@@ -37,7 +37,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-gray">
+        <h1 className="text-3xl font-bold text-black">
           Family Settings
         </h1>
       </div>

@@ -50,7 +50,7 @@ export function NotificationList() {
             {data.pendingTasks.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 mb-3">
                 <Image className="w-5 h-5 text-warning" />
-                <span className="font-bold text-black">{item.child.user.name || item.child.user.email}</span>
+                <span className="font-bold text-black">{item.child?.user?.name || item.child?.user?.email}</span>
                 <span>completed</span>
                 <span className="font-bold">{item.task.title}</span>
                 <span className="ml-auto text-xs text-black">{new Date(item.completedAt).toLocaleString()}</span>
@@ -70,7 +70,7 @@ export function NotificationList() {
             {data.pendingRewards.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 mb-3">
                 <Gift className="w-5 h-5 text-mint-green" />
-                <span className="font-bold text-black">{item.child.user.name || item.child.user.email}</span>
+                <span className="font-bold text-black">{item.child?.user?.name || item.child?.user?.email}</span>
                 <span>wants</span>
                 <span className="font-bold">{item.reward.title}</span>
                 <span className="ml-auto text-xs text-black">{new Date(item.purchasedAt).toLocaleString()}</span>

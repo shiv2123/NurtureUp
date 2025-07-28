@@ -7,9 +7,10 @@ import { sendNotificationToRole } from '@/lib/pusher'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
+    const { taskId } = await params
     const session = await getServerSession(authOptions)
     if (!session || session.user.role !== 'CHILD') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -26,7 +27,7 @@ export async function POST(
 
     const task = await prisma.task.findFirst({
       where: {
-        id: params.taskId,
+        id: taskId,
         assignedToId: child.id,
         isActive: true
       }
@@ -72,17 +73,21 @@ export async function POST(
     // Send notification to parents
     if (task.requiresProof) {
       // Task needs approval
-      await sendNotificationToRole(child.familyId, 'PARENT', {
-        type: 'task_completed',
-        title: 'Task Completed!',
-        message: `${child.nickname} completed "${task.title}" and needs your approval!`,
-        data: {
-          taskId: task.id,
-          childId: child.id,
-          completionId: completion.id,
-          requiresApproval: true
-        }
-      })
+      try {
+        await sendNotificationToRole(child.familyId, 'PARENT', {
+          type: 'task_completed',
+          title: 'Task Completed!',
+          message: `${child.nickname} completed "${task.title}" and needs your approval!`,
+          data: {
+            taskId: task.id,
+            childId: child.id,
+            completionId: completion.id,
+            requiresApproval: true
+          }
+        })
+      } catch (error) {
+        console.warn('Failed to send task completion notification:', error)
+      }
     }
 
     // If auto-approved, update child's stats and check badges
@@ -112,32 +117,40 @@ export async function POST(
       })
 
       // Send notification to parents about auto-approved task
-      await sendNotificationToRole(child.familyId, 'PARENT', {
-        type: 'task_approved',
-        title: 'Task Completed!',
-        message: `${child.nickname} completed "${task.title}" and earned ${coinsEarned} coins!`,
-        data: {
-          taskId: task.id,
-          childId: child.id,
-          completionId: completion.id,
-          coinsEarned,
-          starsAwarded: task.starValue
-        }
-      })
+      try {
+        await sendNotificationToRole(child.familyId, 'PARENT', {
+          type: 'task_approved',
+          title: 'Task Completed!',
+          message: `${child.nickname} completed "${task.title}" and earned ${coinsEarned} coins!`,
+          data: {
+            taskId: task.id,
+            childId: child.id,
+            completionId: completion.id,
+            coinsEarned,
+            starsAwarded: task.starValue
+          }
+        })
+      } catch (error) {
+        console.warn('Failed to send task approval notification:', error)
+      }
 
       // Send badges earned notifications
       for (const badge of newBadges) {
-        await sendNotificationToRole(child.familyId, 'PARENT', {
-          type: 'badge_earned',
-          title: 'New Badge Earned!',
-          message: `${child.nickname} earned the "${badge.name}" badge! ${badge.icon}`,
-          data: {
-            badgeId: badge.id,
-            childId: child.id,
-            badgeName: badge.name,
-            badgeIcon: badge.icon
-          }
-        })
+        try {
+          await sendNotificationToRole(child.familyId, 'PARENT', {
+            type: 'badge_earned',
+            title: 'New Badge Earned!',
+            message: `${child.nickname} earned the "${badge.name}" badge! ${badge.icon}`,
+            data: {
+              badgeId: badge.id,
+              childId: child.id,
+              badgeName: badge.name,
+              badgeIcon: badge.icon
+            }
+          })
+        } catch (error) {
+          console.warn('Failed to send badge notification:', error)
+        }
       }
 
       return NextResponse.json({
