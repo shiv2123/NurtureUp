@@ -8,7 +8,9 @@ import {
   Sword,
   Wallet,
   Gamepad2,
-  Heart
+  Heart,
+  Crown,
+  Camera
 } from 'lucide-react'
 
 const navItems = [
@@ -19,15 +21,15 @@ const navItems = [
     color: 'text-black'
   },
   {
-    href: '/child/quests',
-    label: 'Quests',
-    icon: Sword,
+    href: '/child/kingdom',
+    label: 'Kingdom',
+    icon: Crown,
     color: 'text-black'
   },
   {
-    href: '/child/wallet',
-    label: 'Wallet',
-    icon: Wallet,
+    href: '/child/quests',
+    label: 'Quests',
+    icon: Sword,
     color: 'text-black'
   },
   {
@@ -37,9 +39,9 @@ const navItems = [
     color: 'text-black'
   },
   {
-    href: '/child/pet',
-    label: 'Pet',
-    icon: Heart,
+    href: '/child/camera',
+    label: 'Camera',
+    icon: Camera,
     color: 'text-black'
   }
 ]

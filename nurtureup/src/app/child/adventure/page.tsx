@@ -56,22 +56,86 @@ export default async function AdventurePage() {
     isActive: false // This would be managed by the component
   }
 
+  // Time-based greeting
+  const currentHour = new Date().getHours()
+  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening'
+  
+  // Adventure title based on streak
+  const adventureTitle = child.currentStreak >= 7 ? 'the Legendary' : 
+                        child.currentStreak >= 5 ? 'the Brave' : 
+                        child.currentStreak >= 3 ? 'the Explorer' : 'the Adventurer'
+
   return (
     <div className="py-6 space-y-8">
-      {/* Hero Welcome Panel */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl p-8 text-center relative overflow-hidden shadow-lg">
+      {/* Enhanced Hero Welcome Panel */}
+      <div className="bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 rounded-3xl p-8 text-center relative overflow-hidden shadow-2xl">
         <div className="relative z-10">
-          <div className="text-5xl mb-3">{child.avatar || '🌟'}</div>
-          <h1 className="text-3xl font-bold text-white mb-3 font-child">
-            Welcome back, {child.nickname}!
+          {/* Avatar with level indicator */}
+          <div className="relative inline-block mb-4">
+            <div className="text-6xl mb-2 animate-bounce-subtle">{child.avatar || '🌟'}</div>
+            {child.currentStreak >= 3 && (
+              <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold animate-pulse">
+                {child.currentStreak}
+              </div>
+            )}
+          </div>
+          
+          <h1 className="text-4xl font-bold text-white mb-2 font-child">
+            {greeting}, {child.nickname} {adventureTitle}! 
           </h1>
-          <p className="text-white/90 text-lg font-child">
-            Ready for today's magical adventures?
+          
+          {/* Dynamic status message */}
+          <p className="text-white/90 text-xl font-child mb-6">
+            {todaysCompletedTasks === child.assignedTasks.length && child.assignedTasks.length > 0 
+              ? "🎉 All quests complete! You're amazing!" 
+              : child.assignedTasks.length > 0 
+              ? `Ready to conquer ${child.assignedTasks.length - todaysCompletedTasks} more quests?`
+              : "Your next adventure awaits! ✨"
+            }
           </p>
+
+          {/* Adventure Progress Ring */}
+          <div className="mb-6">
+            <div className="relative w-24 h-24 mx-auto">
+              <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50" cy="50" r="40"
+                  fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="8"
+                />
+                <circle
+                  cx="50" cy="50" r="40"
+                  fill="none" stroke="white" strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 40}`}
+                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - (child.assignedTasks.length > 0 ? todaysCompletedTasks / child.assignedTasks.length : 0))}`}
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-bold text-white font-child">
+                  {child.assignedTasks.length > 0 ? Math.round((todaysCompletedTasks / child.assignedTasks.length) * 100) : 0}%
+                </span>
+              </div>
+            </div>
+            <p className="text-white/80 text-sm font-child mt-2">Today's Progress</p>
+          </div>
+
+          {/* Streak Fire */}
+          {child.currentStreak > 0 && (
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <span className="text-2xl">🔥</span>
+              <span className="text-white font-bold font-child text-lg">{child.currentStreak} day streak!</span>
+              <span className="text-2xl">🔥</span>
+            </div>
+          )}
         </div>
+        
+        {/* Enhanced background elements */}
         <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16 animate-pulse"></div>
+        <div className="absolute top-1/2 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 animate-bounce" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/4 right-1/4 w-16 h-16 bg-white/5 rounded-full animate-bounce" style={{animationDelay: '2s'}}></div>
       </div>
 
       {/* Quick Stats */}
@@ -119,47 +183,154 @@ export default async function AdventurePage() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Quests */}
+        {/* Left Column - Enhanced Quest Board */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Urgent Quest Highlight */}
+          {child.assignedTasks.filter(task => task.completions.length === 0).length > 0 && (
+            <Card className="border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-lg">
+              <CardHeader className="border-b border-orange-200">
+                <CardTitle className="flex items-center gap-2 font-child text-orange-800">
+                  <span className="animate-pulse">🔥</span>
+                  Priority Quest
+                  <span className="animate-pulse">🔥</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {(() => {
+                  const urgentQuest = child.assignedTasks.find(task => task.completions.length === 0)
+                  if (!urgentQuest) return null
+                  
+                  return (
+                    <div className="bg-white rounded-2xl p-6 border-2 border-orange-200 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-2xl animate-bounce-subtle">
+                            🎯
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900 font-child mb-1">{urgentQuest.title}</h3>
+                            <div className="flex items-center gap-2">
+                              {Array.from({ length: Math.min(urgentQuest.starValue, 5) }).map((_, i) => (
+                                <span key={i} className="text-yellow-500 text-lg animate-pulse" style={{animationDelay: `${i * 0.1}s`}}>⭐</span>
+                              ))}
+                              <span className="text-sm text-gray-600 font-medium font-child">
+                                {urgentQuest.starValue} stars
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold font-child px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                          <Target className="w-4 h-4 mr-2" />
+                          Start Quest!
+                        </Button>
+                      </div>
+                      
+                      {urgentQuest.description && (
+                        <p className="text-gray-700 font-child mb-4 bg-gray-50 p-3 rounded-lg">
+                          {urgentQuest.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          {urgentQuest.photoRequired && (
+                            <>
+                              📸 <span className="font-child">Photo proof needed</span>
+                            </>
+                          )}
+                        </span>
+                        <span className="font-child">Due today</span>
+                      </div>
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Regular Quest List */}
           <Card className="shadow-sm border-gray-200">
             <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
-              <CardTitle className="flex items-center gap-2 font-child text-gray-900 text-lg">
-                <Target className="w-5 h-5 text-blue-600" />
-                Today's Quests
+              <CardTitle className="flex items-center justify-between font-child text-gray-900 text-lg">
+                <span className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-blue-600" />
+                  Available Quests
+                </span>
+                <span className="text-sm text-gray-500 font-medium">
+                  {child.assignedTasks.filter(task => task.completions.length === 0).length} remaining
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="space-y-4">
-                {child.assignedTasks.slice(0, 4).map((task) => (
+              <div className="space-y-3">
+                {child.assignedTasks.filter(task => task.completions.length === 0).slice(1).map((task) => (
                   <div 
                     key={task.id} 
-                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-shadow"
+                    className="group flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                        task.completions.length > 0 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-gray-100 text-gray-400'
-                      }`}>
-                        {task.completions.length > 0 ? '✓' : '○'}
+                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg group-hover:bg-blue-200 transition-colors">
+                        <span className="text-blue-600">○</span>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900 font-child">{task.title}</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {Array.from({ length: task.starValue }).map((_, i) => (
+                        <div className="font-semibold text-gray-900 font-child">{task.title}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          {Array.from({ length: Math.min(task.starValue, 5) }).map((_, i) => (
                             <span key={i} className="text-yellow-400">⭐</span>
                           ))}
+                          <span className="text-xs text-gray-500 font-child ml-1">
+                            {task.starValue} stars
+                          </span>
                         </div>
                       </div>
                     </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity border-blue-200 text-blue-600 hover:bg-blue-50 font-child"
+                    >
+                      Start
+                    </Button>
                   </div>
                 ))}
+
+                {/* Completed Quests */}
+                {child.assignedTasks.filter(task => task.completions.length > 0).length > 0 && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-600 font-child mb-3 flex items-center gap-2">
+                      <span className="text-green-600">✓</span>
+                      Completed Today
+                    </h4>
+                    <div className="space-y-2">
+                      {child.assignedTasks.filter(task => task.completions.length > 0).map((task) => (
+                        <div 
+                          key={task.id} 
+                          className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <span className="text-green-600 text-sm">✓</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-800 font-child line-through opacity-75">
+                              {task.title}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.min(task.starValue, 3) }).map((_, i) => (
+                              <span key={i} className="text-yellow-500 text-sm">⭐</span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 {child.assignedTasks.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🎯</div>
-                    <p className="text-gray-600 font-child font-medium">No quests available right now!</p>
-                    <p className="text-sm text-gray-500 font-child mt-2">Check back later for new adventures.</p>
+                  <div className="text-center py-16">
+                    <div className="text-8xl mb-6 animate-bounce-subtle">🎯</div>
+                    <h3 className="text-xl font-bold text-gray-700 font-child mb-2">No quests available!</h3>
+                    <p className="text-gray-500 font-child">Your next adventure is being prepared... ✨</p>
                   </div>
                 )}
               </div>

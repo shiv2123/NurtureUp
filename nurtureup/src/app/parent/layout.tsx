@@ -38,10 +38,10 @@ export default async function ParentLayout({
           </div>
         </div>
       </header>
-      <div className="flex max-w-7xl mx-auto">
+      <div className="flex">
         <ParentNavigation />
-        <main className="flex-1 p-6 lg:p-8 bg-white min-h-screen">
-          <div className="max-w-6xl">
+        <main className="flex-1 p-6 lg:p-8 bg-gray-50 min-h-screen">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>
