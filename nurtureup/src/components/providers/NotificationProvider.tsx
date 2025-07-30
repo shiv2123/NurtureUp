@@ -25,41 +25,45 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    if (!session?.user?.id || !session?.user?.familyId) return
+    if (!session?.user?.id || !session?.user?.familyId || !pusherClient) return
 
     const userId = session.user.id
     const familyId = session.user.familyId
     const userRole = session.user.role
 
-    // Subscribe to user's personal channel
-    const userChannel = pusherClient.subscribe(`user-${userId}`)
-    
-    // Subscribe to family channel
-    const familyChannel = pusherClient.subscribe(`family-${familyId}`)
-    
-    // Subscribe to role-specific channel
-    const roleChannel = pusherClient.subscribe(`family-${familyId}-${userRole.toLowerCase()}`)
-
-    const handleNotification = (notification: Notification) => {
-      setNotifications(prev => [notification, ...prev.slice(0, 49)]) // Keep last 50 notifications
+    try {
+      // Subscribe to user's personal channel
+      const userChannel = pusherClient.subscribe(`user-${userId}`)
       
-      // Show toast notification
-      showNotificationToast(notification)
-    }
-
-    // Listen for notifications on all channels
-    userChannel.bind('notification', handleNotification)
-    familyChannel.bind('notification', handleNotification)
-    roleChannel.bind('notification', handleNotification)
-
-    return () => {
-      userChannel.unbind('notification', handleNotification)
-      familyChannel.unbind('notification', handleNotification)
-      roleChannel.unbind('notification', handleNotification)
+      // Subscribe to family channel
+      const familyChannel = pusherClient.subscribe(`family-${familyId}`)
       
-      pusherClient.unsubscribe(`user-${userId}`)
-      pusherClient.unsubscribe(`family-${familyId}`)
-      pusherClient.unsubscribe(`family-${familyId}-${userRole.toLowerCase()}`)
+      // Subscribe to role-specific channel
+      const roleChannel = pusherClient.subscribe(`family-${familyId}-${userRole.toLowerCase()}`)
+
+      const handleNotification = (notification: Notification) => {
+        setNotifications(prev => [notification, ...prev.slice(0, 49)]) // Keep last 50 notifications
+        
+        // Show toast notification
+        showNotificationToast(notification)
+      }
+
+      // Listen for notifications on all channels
+      userChannel.bind('notification', handleNotification)
+      familyChannel.bind('notification', handleNotification)
+      roleChannel.bind('notification', handleNotification)
+
+      return () => {
+        userChannel.unbind('notification', handleNotification)
+        familyChannel.unbind('notification', handleNotification)
+        roleChannel.unbind('notification', handleNotification)
+        
+        pusherClient.unsubscribe(`user-${userId}`)
+        pusherClient.unsubscribe(`family-${familyId}`)
+        pusherClient.unsubscribe(`family-${familyId}-${userRole.toLowerCase()}`)
+      }
+    } catch (error) {
+      console.warn('Failed to set up Pusher subscriptions:', error)
     }
   }, [session])
 

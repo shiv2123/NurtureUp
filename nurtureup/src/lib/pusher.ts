@@ -1,23 +1,31 @@
 import Pusher from 'pusher'
 import PusherClient from 'pusher-js'
 
-// Server-side Pusher instance
-export const pusherServer = new Pusher({
+// Check if Pusher is configured
+const isPusherConfigured = process.env.PUSHER_APP_ID && 
+  process.env.PUSHER_KEY && 
+  process.env.PUSHER_SECRET && 
+  process.env.PUSHER_CLUSTER &&
+  process.env.PUSHER_APP_ID !== 'your-app-id' &&
+  process.env.PUSHER_KEY !== 'your-key'
+
+// Server-side Pusher instance (only if configured)
+export const pusherServer = isPusherConfigured ? new Pusher({
   appId: process.env.PUSHER_APP_ID!,
   key: process.env.PUSHER_KEY!,
   secret: process.env.PUSHER_SECRET!,
   cluster: process.env.PUSHER_CLUSTER!,
   useTLS: true
-})
+}) : null
 
-// Client-side Pusher instance
-export const pusherClient = new PusherClient(
+// Client-side Pusher instance (only if configured)
+export const pusherClient = isPusherConfigured ? new PusherClient(
   process.env.NEXT_PUBLIC_PUSHER_KEY!,
   {
     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     forceTLS: true
   }
-)
+) : null
 
 // Notification types
 export type NotificationType = 
@@ -55,8 +63,16 @@ export async function sendNotificationToUser(
     familyId
   }
 
-  // Send to user's personal channel
-  await pusherServer.trigger(`user-${userId}`, 'notification', fullNotification)
+  // Send to user's personal channel (only if Pusher is configured)
+  if (pusherServer) {
+    try {
+      await pusherServer.trigger(`user-${userId}`, 'notification', fullNotification)
+    } catch (error) {
+      console.warn('Failed to send Pusher notification:', error)
+    }
+  } else {
+    console.log('Pusher not configured, skipping notification:', fullNotification)
+  }
   
   return fullNotification
 }
@@ -74,8 +90,16 @@ export async function sendNotificationToFamily(
     familyId
   }
 
-  // Send to family channel
-  await pusherServer.trigger(`family-${familyId}`, 'notification', fullNotification)
+  // Send to family channel (only if Pusher is configured)
+  if (pusherServer) {
+    try {
+      await pusherServer.trigger(`family-${familyId}`, 'notification', fullNotification)
+    } catch (error) {
+      console.warn('Failed to send Pusher notification:', error)
+    }
+  } else {
+    console.log('Pusher not configured, skipping notification:', fullNotification)
+  }
   
   return fullNotification
 }
@@ -94,8 +118,16 @@ export async function sendNotificationToRole(
     familyId
   }
 
-  // Send to role-specific family channel
-  await pusherServer.trigger(`family-${familyId}-${role.toLowerCase()}`, 'notification', fullNotification)
+  // Send to role-specific family channel (only if Pusher is configured)
+  if (pusherServer) {
+    try {
+      await pusherServer.trigger(`family-${familyId}-${role.toLowerCase()}`, 'notification', fullNotification)
+    } catch (error) {
+      console.warn('Failed to send Pusher notification:', error)
+    }
+  } else {
+    console.log('Pusher not configured, skipping notification:', fullNotification)
+  }
   
   return fullNotification
 }

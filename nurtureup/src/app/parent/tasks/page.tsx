@@ -2,8 +2,6 @@
 
 import { TaskList } from '@/components/parent/TaskList'
 import { TaskForge } from '@/components/parent/TaskForge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
 import { Sparkles, Target, TrendingUp, Clock } from 'lucide-react'
 
@@ -73,104 +71,42 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-black">Quest Manager</h1>
-          <p className="text-black mt-1">
-            Create and manage magical quests for your family
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+        {/* Clean Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold text-slate-800 mb-2">Task Manager</h1>
+            <p className="text-slate-600 text-lg">
+              Create and manage tasks for your family
+            </p>
+          </div>
+          <button 
+            onClick={() => setForgeOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            <Sparkles className="w-5 h-5 mr-2 inline" />
+            Create Task
+          </button>
         </div>
-        <Button 
-          onClick={() => setForgeOpen(true)}
-          className="gap-2"
-          size="lg"
-        >
-          <Sparkles className="w-5 h-5" />
-          Open Task Forge
-        </Button>
-      </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-sage-green/5 border-sage-green/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sage-green/20 flex items-center justify-center">
-                <Target className="w-5 h-5 text-sage-green" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-black">12</div>
-                <div className="text-sm text-black">Active Quests</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-soft-coral/5 border-soft-coral/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-soft-coral/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-soft-coral" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-black">89%</div>
-                <div className="text-sm text-black">Completion Rate</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Task Forge Dialog */}
+        <TaskForge
+          open={forgeOpen}
+          onOpenChange={setForgeOpen}
+          children={children}
+          onCreateTask={handleCreateTask}
+        />
 
-        <Card className="bg-sky-blue/5 border-sky-blue/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-blue/20 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-sky-blue" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-black">3</div>
-                <div className="text-sm text-black">Pending Approval</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-mint-green/5 border-mint-green/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-mint-green/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-mint-green" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-black">247</div>
-                <div className="text-sm text-black">Stars Earned</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Task Forge Dialog */}
-      <TaskForge
-        open={forgeOpen}
-        onOpenChange={setForgeOpen}
-        children={children}
-        onCreateTask={handleCreateTask}
-      />
-
-      {/* Task List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            Current Quests
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        {/* Task List */}
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-slate-800">Current Tasks</h2>
+          </div>
           <TaskList key={refreshKey} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 } 

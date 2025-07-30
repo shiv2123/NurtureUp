@@ -1,0 +1,51 @@
+{
+  "name": "nurtureup-backend-testing",
+  "version": "1.0.0",
+  "description": "Comprehensive backend testing suite for NurtureUp",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:api": "jest --testPathPattern=api",
+    "test:db": "jest --testPathPattern=database",
+    "test:auth": "jest --testPathPattern=auth",
+    "setup-test-db": "node scripts/setup-test-db.js",
+    "reset-test-db": "node scripts/reset-test-db.js"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.19.9",
+    "dotenv": "^16.4.5",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.7",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.12.0",
+    "@types/node-fetch": "^2.6.12",
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "node-fetch": "^3.3.2",
+    "prisma": "^6.12.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/tests"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.ts",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "collectCoverageFrom": [
+      "tests/**/*.ts",
+      "!tests/**/*.d.ts",
+      "!tests/setup/**/*"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup/jest.setup.ts"
+    ]
+  }
+}

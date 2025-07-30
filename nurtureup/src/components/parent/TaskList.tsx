@@ -58,38 +58,77 @@ export function TaskList() {
   }
 
   if (loading) {
-    return <div className="text-center text-black py-8">Loading tasks...</div>
+    return <div className="text-center text-slate-600 py-8">Loading tasks...</div>
   }
   if (error) {
-    return <div className="text-center text-error py-8">{error}</div>
+    return <div className="text-center text-red-600 py-8">{error}</div>
   }
   if (tasks.length === 0) {
-    return <div className="rounded-2xl border border-slate-200 bg-white shadow-soft p-6 text-center text-black">No tasks yet. Start by adding your first quest!</div>
+    return (
+      <div className="text-center py-12">
+        <div className="text-4xl mb-4">📝</div>
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">No tasks yet</h3>
+        <p className="text-slate-600">Start by creating your first task.</p>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {tasks.map((task) => (
-        <Card key={task.id}>
-          <CardHeader>
-            <CardTitle>{task.title}</CardTitle>
-            <div className="text-xs text-black mt-1">
-              {task.category && <span className="mr-2">{task.category}</span>}
-              Difficulty: {task.difficulty} | ⭐ {task.starValue}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {task.description && <p className="mb-2 text-black">{task.description}</p>}
-            {task.assignedTo?.user && (
-              <div className="text-sm text-black mt-2">
-                Assigned to: {task.assignedTo.user.name || task.assignedTo.user.email}
+        <div key={task.id} className="bg-slate-50 rounded-xl p-6 border border-slate-200 hover:border-slate-300 transition-colors">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">{task.title}</h3>
+              {task.description && (
+                <p className="text-slate-600 mb-3 text-sm">{task.description}</p>
+              )}
+              
+              <div className="flex items-center gap-4 text-sm">
+                {task.category && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                    {task.category}
+                  </span>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500">Difficulty:</span>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          i < task.difficulty ? 'bg-orange-400' : 'bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-500">⭐</span>
+                  <span className="text-slate-700 font-medium text-sm">{task.starValue}</span>
+                </div>
               </div>
-            )}
-            <div className="mt-2 text-xs text-black">
-              Completions today: {task.completions.length}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+            <div className="flex items-center gap-4 text-sm text-slate-600">
+              {task.assignedTo?.user && (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-slate-300 rounded-full flex items-center justify-center">
+                    <span className="text-slate-600 text-xs">👤</span>
+                  </div>
+                  <span>
+                    {task.assignedTo.user.name || task.assignedTo.user.email}
+                  </span>
+                </div>
+              )}
+              <div>
+                <span className="font-medium">{task.completions.length}</span> completions today
+              </div>
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   )
