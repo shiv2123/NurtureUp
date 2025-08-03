@@ -46,8 +46,8 @@ export function ChildNavigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50" style={{boxShadow: 'var(--shadow-medium)'}}>
-      <div className="max-w-4xl mx-auto px-6 py-4">
+    <nav className="fixed bottom-0 left-0 right-0 header-glass border-t border-white/20 z-50">
+      <div className="container-modern">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -58,16 +58,22 @@ export function ChildNavigation() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 min-w-[64px]',
+                  'flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-300 min-w-[72px] group hover-scale',
                   isActive 
-                    ? 'text-child-primary' 
-                    : 'text-gray-500 hover:text-child-primary'
+                    ? 'text-white bg-gradient-secondary shadow-lg' 
+                    : 'text-slate-600 hover:text-purple-600 hover:bg-white/50'
                 )}
               >
-                <Icon className="w-6 h-6" />
-                <span className="text-xs font-medium font-child">
+                <div className="text-2xl mb-1 group-hover:scale-110 transition-transform duration-300">
+                  {item.emoji}
+                </div>
+                <span className="text-xs font-bold leading-none">
                   {item.label}
                 </span>
+                {/* Magical sparkle indicator */}
+                {isActive && (
+                  <div className="w-2 h-2 bg-white rounded-full mt-1 animate-pulse shadow-lg" />
+                )}
               </Link>
             )
           })}

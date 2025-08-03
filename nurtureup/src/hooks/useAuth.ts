@@ -20,9 +20,9 @@ export function useAuth() {
 
       // Redirect based on user role
       if (session?.user.role === 'CHILD') {
-        router.push('/adventure')
+        router.push('/child/adventure')
       } else {
-        router.push('/dashboard')
+        router.push('/parent/home')
       }
     },
     [router, session]

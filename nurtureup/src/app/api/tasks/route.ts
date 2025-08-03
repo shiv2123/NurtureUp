@@ -32,11 +32,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const filterType = searchParams.get('filter') || 'active'
+
+    // Build where clause based on filter type
+    let whereClause: any = {
+      familyId: session.user.familyId
+    }
+
+    switch (filterType) {
+      case 'active':
+        whereClause.isActive = true
+        break
+      case 'scheduled':
+        whereClause.isActive = true
+        whereClause.dueDate = { gt: new Date() }
+        break
+      case 'completed':
+        // Show tasks that have been completed today
+        whereClause.completions = {
+          some: {
+            completedAt: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0))
+            }
+          }
+        }
+        break
+      case 'archived':
+        whereClause.isActive = false
+        break
+      default:
+        whereClause.isActive = true
+    }
+
     const tasks = await prisma.task.findMany({
-      where: {
-        familyId: session.user.familyId,
-        isActive: true
-      },
+      where: whereClause,
       include: {
         assignedTo: {
           include: { user: true }
@@ -52,7 +82,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json(tasks)
+    return NextResponse.json({ tasks, count: tasks.length, filter: filterType })
   } catch (error) {
     console.error('Failed to fetch tasks:', error)
     return NextResponse.json(

@@ -1,57 +1,67 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+'use client'
+
+import { useSession } from 'next-auth/react'
 import { VirtualPetWidget } from '@/components/child/VirtualPetWidget'
-import { WalletDisplay } from '@/components/child/WalletDisplay'
+import { WalletDisplay } from '@/components/child/WalletDisplay' 
 import { QuestList } from '@/components/child/QuestList'
 import { QuestActions } from '@/components/child/QuestActions'
 import { ScreenTimeTracker } from '@/components/child/ScreenTimeTracker'
-import { Star, Trophy, Target, Coins, Zap } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useOptimisticTasks } from '@/hooks/useOptimisticTasks'
+import { Star, Trophy, Target, Coins, Zap, Sparkles, Award, Wifi, WifiOff } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-export default async function AdventurePage() {
-  const session = await getServerSession(authOptions)
-  
-  // Fetch child data
-  const child = await prisma.child.findUnique({
-    where: { userId: session!.user.id },
-    include: {
-      user: true,
-      assignedTasks: {
-        where: { isActive: true },
-        include: {
-          completions: {
-            where: {
-              completedAt: {
-                gte: new Date(new Date().setHours(0, 0, 0, 0))
-              }
-            }
-          }
+export default function AdventurePage() {
+  const { data: session } = useSession()
+  const { tasks, isLoading, error, isConnected } = useOptimisticTasks()
+  const [childData, setChildData] = useState<any>(null)
+  const [loadingChild, setLoadingChild] = useState(true)
+
+  // Fetch child profile data
+  useEffect(() => {
+    if (!session?.user?.id) return
+
+    const fetchChildData = async () => {
+      try {
+        const response = await fetch('/api/child/profile')
+        if (response.ok) {
+          const data = await response.json()
+          setChildData(data)
         }
-      },
-      earnedBadges: {
-        include: { badge: true },
-        orderBy: { earnedAt: 'desc' },
-        take: 3
-      },
-      pet: true
+      } catch (error) {
+        console.error('Failed to fetch child data:', error)
+      } finally {
+        setLoadingChild(false)
+      }
     }
-  })
 
-  if (!child) {
+    fetchChildData()
+  }, [session?.user?.id])
+
+  if (!session) {
+    return <div>Please log in</div>
+  }
+
+  if (loadingChild) {
+    return <div>Loading...</div>
+  }
+
+  if (!childData) {
     return <div>Child profile not found</div>
   }
 
-  const todaysCompletedTasks = child.assignedTasks.filter(task => 
-    task.completions.length > 0
+  const todaysCompletedTasks = tasks.filter(task => 
+    task.completions && task.completions.length > 0
   ).length
 
   // Prepare screen time data
   const screenTimeData = {
-    dailyLimit: child.dailyScreenMinutes,
-    bonusMinutes: child.bonusScreenMinutes,
-    usedToday: child.usedScreenMinutes,
-    lastReset: child.lastScreenReset.toISOString(),
-    isActive: false // This would be managed by the component
+    dailyLimit: childData.dailyScreenMinutes,
+    bonusMinutes: childData.bonusScreenMinutes,
+    usedToday: childData.usedScreenMinutes,
+    lastReset: childData.lastScreenReset,
+    isActive: false
   }
 
   // Time-based greeting
@@ -59,175 +69,271 @@ export default async function AdventurePage() {
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening'
   
   // Adventure title based on streak
-  const adventureTitle = child.currentStreak >= 7 ? 'the Legendary' : 
-                        child.currentStreak >= 5 ? 'the Brave' : 
-                        child.currentStreak >= 3 ? 'the Explorer' : 'the Adventurer'
+  const adventureTitle = childData.currentStreak >= 7 ? 'the Legendary' : 
+                        childData.currentStreak >= 5 ? 'the Brave' : 
+                        childData.currentStreak >= 3 ? 'the Explorer' : 'the Adventurer'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
-        {/* Clean Header */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-4">{child.avatar || '🌟'}</div>
-          <h1 className="text-2xl font-semibold text-slate-800 mb-2 font-child">
-            {greeting}, {child.nickname}!
-          </h1>
-          <p className="text-slate-600">
-            {todaysCompletedTasks === child.assignedTasks.length && child.assignedTasks.length > 0 
-              ? "All tasks complete! Great job!" 
-              : child.assignedTasks.length > 0 
-              ? `${child.assignedTasks.length - todaysCompletedTasks} tasks left today`
-              : "No tasks for today"
-            }
-          </p>
-        </div>
+    <div className="min-h-screen bg-app-bg">
+      <div className="container-modern space-y-8">
+        {/* Connection Status Bar */}
+        {!isConnected && (
+          <Card className="bg-card-amber hover-scale">
+            <CardContent className="flex items-center gap-3">
+              <WifiOff className="w-5 h-5 text-amber-600" />
+              <div>
+                <div className="font-semibold text-amber-700">You're offline</div>
+                <div className="text-sm text-slate-600">Your progress will sync when you reconnect</div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Simple Progress Overview */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <div className="text-xl font-semibold text-slate-800 mb-1">{todaysCompletedTasks}</div>
-              <div className="text-sm text-slate-600">Done Today</div>
-            </div>
-            <div>
-              <div className="text-xl font-semibold text-slate-800 mb-1">{child.totalStars}</div>
-              <div className="text-sm text-slate-600">Total Stars</div>
-            </div>
-            <div>
-              <div className="text-xl font-semibold text-slate-800 mb-1">{child.currentCoins}</div>
-              <div className="text-sm text-slate-600">Coins</div>
-            </div>
-            <div>
-              <div className="text-xl font-semibold text-slate-800 mb-1">{child.currentStreak}</div>
-              <div className="text-sm text-slate-600">Day Streak</div>
-            </div>
+        {/* Hero Welcome */}
+        <div className="text-center">
+          <div className="w-24 h-24 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl hover-glow">
+            <span className="text-4xl">{childData.avatar || '🌟'}</span>
+          </div>
+          
+          <h1 className="text-3xl font-bold text-gradient-primary mb-4">
+            {greeting}, {childData.nickname}!
+          </h1>
+          
+          <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg hover-scale">
+            <Star className="w-5 h-5 text-amber-500" />
+            <span className="font-bold text-slate-800">{childData.totalStars} stars collected</span>
           </div>
         </div>
 
-        {/* Tasks */}
-        <div className="space-y-6">
-          {/* Today's Tasks */}
-          {child.assignedTasks.filter(task => task.completions.length === 0).length > 0 && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">Today's Tasks</h2>
-              <div className="space-y-4">
-                {child.assignedTasks.filter(task => task.completions.length === 0).map((task) => (
-                  <div key={task.id} className="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-slate-800 mb-1">{task.title}</h3>
-                        {task.description && (
-                          <p className="text-sm text-slate-600 mb-2">{task.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-yellow-500">⭐</span>
-                          <span className="text-slate-600">{task.starValue} stars</span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <QuestActions 
-                          taskId={task.id}
-                          taskTitle={task.title}
-                          requiresProof={task.requiresProof}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
+          <Card className="bg-card-emerald hover-scale hover-glow text-center">
+            <CardContent>
+              <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <Trophy className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="text-2xl font-bold text-gradient-primary">{todaysCompletedTasks}</div>
+              <div className="text-sm font-medium text-slate-600">Tasks Done</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card-amber hover-scale hover-glow text-center">
+            <CardContent>
+              <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <Coins className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="text-2xl font-bold text-gradient-accent">{childData.currentCoins}</div>
+              <div className="text-sm font-medium text-slate-600">Coins</div>
+            </CardContent>
+          </Card>
+        </div>
+
+      {/* Active Quests */}
+      {tasks.filter(task => !task.completions || task.completions.length === 0).length > 0 && (
+        <Card variant="elevated" stage="child">
+          <CardHeader>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Today's Magical Quests</CardTitle>
+                <p className="text-sm text-neutral-600">Complete these to earn rewards!</p>
               </div>
             </div>
-          )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {tasks.filter(task => !task.completions || task.completions.length === 0).map((task) => (
+              <Card key={task.id} variant="flat" stage="child">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-neutral-900 mb-2">{task.title}</h3>
+                      {task.description && (
+                        <p className="text-neutral-600 text-sm mb-3">{task.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 bg-secondary text-neutral-900 px-3 py-1 rounded-full w-fit">
+                        <Star className="w-3 h-3" />
+                        <span className="font-semibold text-xs">{task.starValue} magic stars</span>
+                      </div>
+                      {/* Show optimistic loading state */}
+                      {task._optimistic?.isCompleting && (
+                        <div className="flex items-center gap-2 mt-2 text-primary text-sm">
+                          <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+                          <span>Completing quest...</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4">
+                      <QuestActions 
+                        taskId={task.id}
+                        taskTitle={task.title}
+                        task={task}
+                        requiresProof={task.requiresProof}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Completed Tasks */}
-          {child.assignedTasks.filter(task => task.completions.length > 0).length > 0 && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="text-green-500">✓</span>
-                Completed Today
-              </h2>
-              <div className="space-y-3">
-                {child.assignedTasks.filter(task => task.completions.length > 0).map((task) => (
-                  <div key={task.id} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center">
-                      <span className="text-sm">✓</span>
+      {/* Completed Quests */}
+      {tasks.filter(task => task.completions && task.completions.length > 0).length > 0 && (
+        <Card variant="elevated" stage="child" className="border-success/20">
+          <CardHeader>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
+                <Award className="w-6 h-6 text-success" />
+              </div>
+              <div>
+                <CardTitle className="text-xl text-success">Victory Hall</CardTitle>
+                <p className="text-sm text-neutral-600">Today's completed quests</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {tasks.filter(task => task.completions && task.completions.length > 0).map((task) => (
+              <Card key={task.id} variant="flat" stage="child" className="bg-success/5 border-success/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-success/10 border-2 border-success/30 flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-success" />
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-slate-800 line-through opacity-75">
+                      <div className="font-semibold text-neutral-900 line-through opacity-75">
                         {task.title}
                       </div>
+                      <div className="text-success text-sm">
+                        {task.completions?.[0]?.isApproved 
+                          ? 'Quest completed! ✨' 
+                          : 'Waiting for approval... ⏳'
+                        }
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">⭐</span>
-                      <span className="text-slate-600 text-sm">{task.starValue}</span>
+                    <div className="flex items-center gap-2 bg-secondary text-neutral-900 px-3 py-1 rounded-full">
+                      <Star className="w-3 h-3" />
+                      <span className="font-semibold text-xs">{task.starValue}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-          {/* No Tasks Message */}
-          {child.assignedTasks.length === 0 && (
-            <div className="bg-white rounded-2xl p-12 shadow-sm border border-slate-200 text-center">
-              <div className="text-6xl mb-4">🎯</div>
-              <h3 className="text-xl font-semibold text-slate-800 mb-2">No tasks today!</h3>
-              <p className="text-slate-600">Your next adventure is being prepared... ✨</p>
+      {/* No Quests Message */}
+      {tasks.length === 0 && !isLoading && (
+        <Card variant="elevated" stage="child">
+          <CardContent className="text-center py-12">
+            <div className="w-20 h-20 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">🎯</span>
             </div>
-          )}
-          </div>
+            <CardTitle className="text-xl mb-3">No quests today!</CardTitle>
+            <p className="text-neutral-600">Your next magical adventure is being prepared... ✨</p>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Additional Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Virtual Pet */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+      {/* Loading State */}
+      {isLoading && (
+        <Card variant="elevated" stage="child">
+          <CardContent className="text-center py-12">
+            <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
+            <p className="text-neutral-600">Loading your quests...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Additional Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Virtual Pet Companion */}
+        <Card variant="elevated" stage="child">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <span className="text-2xl">🐾</span>
+              Your Pet Companion
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <VirtualPetWidget viewMode="child" />
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Screen Time Tracker */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        {/* Screen Time Magic */}
+        <Card variant="elevated" stage="child">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <span className="text-2xl">⏰</span>
+              Screen Time Magic
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <ScreenTimeTracker initialData={screenTimeData} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Recent Badges */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center gap-2 mb-6">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <h3 className="text-xl font-semibold text-slate-800">Recent Badges</h3>
+      {/* Achievement Gallery */}
+      <Card variant="elevated" stage="child">
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+              <Trophy className="w-6 h-6 text-secondary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Achievement Gallery</CardTitle>
+              <p className="text-sm text-neutral-600">Your earned badges & rewards</p>
+            </div>
           </div>
-          {child.earnedBadges.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {child.earnedBadges.map((earnedBadge) => (
-                <div key={earnedBadge.id} className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="text-3xl">{earnedBadge.badge.icon}</div>
-                  <div>
-                    <div className="font-medium text-slate-800">{earnedBadge.badge.name}</div>
-                    <div className="text-sm text-slate-600">{earnedBadge.badge.description}</div>
-                  </div>
-                </div>
+        </CardHeader>
+        <CardContent>
+          {childData.earnedBadges && childData.earnedBadges.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {childData.earnedBadges.map((earnedBadge: any) => (
+                <Card key={earnedBadge.id} variant="flat" stage="child" interactive>
+                  <CardContent className="text-center p-4">
+                    <div className="text-3xl mb-3">{earnedBadge.badge.icon}</div>
+                    <div className="font-semibold text-neutral-900 mb-1 text-sm">{earnedBadge.badge.name}</div>
+                    <div className="text-xs text-neutral-600">{earnedBadge.badge.description}</div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="text-5xl mb-3">🏆</div>
-              <p className="text-slate-600">
-                Complete tasks to earn your first badge!
+              <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">🏆</span>
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                Ready for your first badge?
+              </h3>
+              <p className="text-sm text-neutral-600">
+                Complete quests to unlock amazing achievements!
               </p>
             </div>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Wallet Preview */}
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 shadow-sm border border-yellow-200 text-center">
-          <div className="text-4xl mb-3">💰</div>
-          <div className="text-3xl font-bold text-slate-800 mb-2">{child.currentCoins}</div>
-          <div className="text-slate-600 mb-4">Coins Available</div>
-          <button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-            <Coins className="w-4 h-4 mr-2 inline" />
-            Visit Store
-          </button>
-        </div>
-      </div>
+      {/* Treasure Vault */}
+      <Card variant="elevated" stage="child" className="bg-warning/5 border-warning/20">
+        <CardContent className="text-center py-8">
+          <div className="w-16 h-16 bg-warning/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">💰</span>
+          </div>
+          <div className="text-3xl font-bold text-neutral-900 mb-2">{childData.currentCoins}</div>
+          <div className="text-neutral-600 mb-6">Golden Coins in your treasure vault</div>
+          <Button size="lg" className="bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70">
+            <Coins className="w-4 h-4 mr-2" />
+            Visit Magic Store
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
     </div>
   )
 } 

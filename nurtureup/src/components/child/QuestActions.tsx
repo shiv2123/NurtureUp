@@ -1,47 +1,32 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { CheckCircle, Camera, Loader2 } from 'lucide-react'
+import { CheckCircle, Camera, Loader2, Wifi, WifiOff } from 'lucide-react'
+import { useOptimisticTasks } from '@/hooks/useOptimisticTasks'
+import { Button } from '@/components/ui/button'
 
 interface QuestActionsProps {
   taskId: string
   taskTitle: string
+  task?: any // Full task object for optimistic state
   requiresProof?: boolean
   className?: string
 }
 
-export function QuestActions({ taskId, taskTitle, requiresProof = false, className = '' }: QuestActionsProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isCompleted, setIsCompleted] = useState(false)
-  const [showPhotoUpload, setShowPhotoUpload] = useState(false)
-  const router = useRouter()
+export function QuestActions({ taskId, taskTitle, task, requiresProof = false, className = '' }: QuestActionsProps) {
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const { completeTask, isConnected } = useOptimisticTasks()
 
-  const handleStartQuest = async (proofImage?: string) => {
-    setIsLoading(true)
+  // Check if task is in optimistic state
+  const isOptimisticallyCompleting = task?._optimistic?.isCompleting
+  const isOptimisticallyCompleted = task?._optimistic?.isCompleted || 
+    (task?.completions && task.completions.length > 0)
+
+  const handleCompleteTask = async (proofImage?: string, notes?: string) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          completedAt: new Date().toISOString(),
-          proofImage,
-        }),
-      })
-
-      if (response.ok) {
-        setIsCompleted(true)
-        // Refresh the page to show updated data
-        router.refresh()
-      } else {
-        console.error('Failed to complete task')
-      }
+      await completeTask(taskId, proofImage, notes)
     } catch (error) {
-      console.error('Error completing task:', error)
-    } finally {
-      setIsLoading(false)
+      console.error('Failed to complete task:', error)
     }
   }
 
@@ -49,7 +34,7 @@ export function QuestActions({ taskId, taskTitle, requiresProof = false, classNa
     const file = event.target.files?.[0]
     if (!file) return
 
-    setIsLoading(true)
+    setUploadingPhoto(true)
     try {
       const formData = new FormData()
       formData.append('photo', file)
@@ -63,42 +48,70 @@ export function QuestActions({ taskId, taskTitle, requiresProof = false, classNa
       if (photoResponse.ok) {
         const photoData = await photoResponse.json()
         // After photo upload, complete the task with the photo URL
-        await handleStartQuest(photoData.photoUrl)
+        await handleCompleteTask(photoData.photoUrl)
       } else {
         console.error('Failed to upload photo')
-        setIsLoading(false)
       }
     } catch (error) {
       console.error('Error uploading photo:', error)
-      setIsLoading(false)
+    } finally {
+      setUploadingPhoto(false)
     }
   }
 
-  if (isCompleted) {
+  // Show completed state
+  if (isOptimisticallyCompleted) {
     return (
-      <div className="flex items-center gap-2 text-green-600 font-medium">
-        <CheckCircle className="w-4 h-4" />
-        Complete!
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-success font-semibold bg-success/10 px-4 py-2 rounded-lg border border-success/20">
+          <CheckCircle className="w-4 h-4" />
+          <span className="text-sm">
+            {task?.requiresProof && !task?.completions?.[0]?.isApproved
+              ? 'Waiting for approval...'
+              : 'Quest Complete! ✨'
+            }
+          </span>
+        </div>
+        {!isConnected && (
+          <div className="flex items-center gap-1 text-warning text-xs">
+            <WifiOff className="w-3 h-3" />
+            <span>Offline</span>
+          </div>
+        )}
       </div>
     )
   }
 
+  const isLoading = isOptimisticallyCompleting || uploadingPhoto
+
   return (
     <div className={`flex gap-2 ${className}`}>
-      <button
-        onClick={handleStartQuest}
+      {/* Connection status indicator */}
+      {!isConnected && (
+        <div className="flex items-center gap-1 text-warning text-xs px-2 py-1 bg-warning/10 rounded border border-warning/20">
+          <WifiOff className="w-3 h-3" />
+          <span>Offline</span>
+        </div>
+      )}
+      
+      <Button
+        onClick={() => handleCompleteTask()}
         disabled={isLoading}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center transition-colors"
+        size="sm"
+        className="bg-success hover:bg-success/90"
       >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+        {isOptimisticallyCompleting ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Completing...
+          </>
         ) : (
           <>
-            <CheckCircle className="w-4 h-4 mr-1" />
-            Complete
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Complete Quest
           </>
         )}
-      </button>
+      </Button>
       
       {requiresProof && (
         <div className="relative">
@@ -109,13 +122,23 @@ export function QuestActions({ taskId, taskTitle, requiresProof = false, classNa
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={isLoading}
           />
-          <button
+          <Button
             disabled={isLoading}
-            className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center transition-colors"
+            size="sm"
+            variant="secondary"
           >
-            <Camera className="w-4 h-4 mr-1" />
-            Photo
-          </button>
+            {uploadingPhoto ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Camera className="w-4 h-4 mr-2" />
+                Add Photo
+              </>
+            )}
+          </Button>
         </div>
       )}
     </div>

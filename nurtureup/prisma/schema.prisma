@@ -49,6 +49,7 @@ model Family {
   tasks           Task[]
   rewards         Reward[]
   milestones      Milestone[]
+  challenges      Challenge[]
   settings        FamilySettings?
 }
 
@@ -111,6 +112,19 @@ model Child {
   purchases       RewardPurchase[]
   pet             VirtualPet?
   learningScores  LearningScore[]
+  moodEntries     MoodEntry[]
+  financialTransactions FinancialTransaction[]
+  schoolReadinessSkills SchoolReadinessSkill[]
+  savingsGoals    SavingsGoal[]
+  payoutRequests  PayoutRequest[]
+  challengesFrom  Challenge[] @relation("ChallengeFrom")
+  challengesTo    Challenge[] @relation("ChallengeTo")
+  feedingLogs     FeedingLog[]
+  sleepLogs       SleepLog[]
+  diaperLogs      DiaperLog[]
+  pottyLogs       PottyLog[]
+  screenTimeLogs  ScreenTimeLog[]
+  healthRecords   HealthRecord[]
 }
 
 // Tasks/Chores
@@ -311,16 +325,134 @@ model LearningScore {
   childId         String
   child           Child     @relation(fields: [childId], references: [id])
   
-  // Score details
-  subject         String    // 'math', 'reading', 'science'
-  score           Int       // 0-100
-  questionsAnswered Int
-  correctAnswers  Int
-  timeSpent       Int       // seconds
+  // Game session details
+  subject         String    // 'phonics', 'numbers', 'shapes'
+  gameId          String    // 'letter-sounds', 'count-to-10', etc.
+  score           Int       // 0-100 game score
+  xpEarned        Int       // XP earned from this session
+  durationSeconds Int?      // How long the game session lasted
   
-  completedAt     DateTime  @default(now())
+  // Additional metadata (JSON stored as string for SQLite)
+  metadata        String?   // { difficulty: 'easy', attempts: 3, perfectScore: false }
   
-  @@index([childId, subject, completedAt])
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, subject, createdAt])
+  @@index([childId, gameId])
+}
+
+// Mood/Wellness tracking
+model MoodEntry {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Core mood data
+  moodScore       Int       // 1-10 scale
+  notes           String?   // Optional text notes
+  tags            String?   // Comma-separated tags (happy, sad, stressed, excited)
+  
+  // Additional wellness metrics (1-10 scale)
+  energy          Int?      // Energy level
+  stress          Int?      // Stress level  
+  sleep           Int?      // Sleep quality
+  socialInteraction Int?    // Social satisfaction
+  
+  // Context tracking
+  activities      String?   // Comma-separated activities (school, sports, friends)
+  triggers        String?   // Comma-separated triggers (homework, argument, success)
+  
+  // Timing
+  loggedAt        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, loggedAt])
+  @@index([childId, moodScore])
+}
+
+// Financial tracking
+model FinancialTransaction {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Transaction details
+  amount          Float     // Positive for earnings, negative for spending
+  description     String
+  category        String    // 'chores', 'stars', 'allowance', 'food', 'toys', 'treats', etc.
+  notes           String?   // Optional detailed notes
+  source          String    // 'manual', 'chores', 'stars', 'allowance', 'bonus'
+  
+  // Timing
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, createdAt])
+  @@index([childId, category])
+}
+
+// Savings goals
+model SavingsGoal {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Goal details
+  item            String    // What they're saving for
+  targetAmount    Float     // Goal amount
+  isActive        Boolean   @default(true)
+  
+  // Timing
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([childId, isActive])
+}
+
+// Payout requests (child requesting real money from parents)
+model PayoutRequest {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Request details
+  amount          Float
+  notes           String?
+  status          String    @default("pending") // 'pending', 'approved', 'rejected'
+  
+  // Approval tracking
+  approvedById    String?   // Parent who approved/rejected
+  approvedAt      DateTime?
+  
+  // Timing
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([childId, status])
+}
+
+// Challenges between family members
+model Challenge {
+  id              String    @id @default(cuid())
+  familyId        String
+  family          Family    @relation(fields: [familyId], references: [id])
+  fromChildId     String
+  fromChild       Child     @relation("ChallengeFrom", fields: [fromChildId], references: [id])
+  toChildId       String
+  toChild         Child     @relation("ChallengeTo", fields: [toChildId], references: [id])
+  
+  // Challenge details
+  challengeText   String
+  status          String    @default("pending_approval") // 'pending_approval', 'active', 'completed', 'rejected'
+  
+  // Results (when completed)
+  winnerId        String?   // Child who won the challenge
+  completedAt     DateTime?
+  
+  // Timing
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([familyId, status])
 }
 
 // Family settings
@@ -352,4 +484,155 @@ model Session {
   expires         DateTime
   
   @@index([userId])
+}
+
+// Infant Care Models (for parent dashboard tracking)
+
+// Feeding logs for infants
+model FeedingLog {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Feeding details
+  type            String    // 'breast', 'bottle', 'formula', 'solid'
+  amount          Float?    // in ml/oz
+  duration        Int?      // in minutes (for breastfeeding)
+  notes           String?
+  
+  // Timing
+  startTime       DateTime  @default(now())
+  endTime         DateTime?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, startTime])
+}
+
+// Sleep tracking for infants
+model SleepLog {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Sleep details
+  type            String    // 'nap', 'night', 'bedtime'
+  quality         String?   // 'poor', 'fair', 'good', 'excellent'
+  notes           String?
+  
+  // Timing
+  startTime       DateTime
+  endTime         DateTime?
+  duration        Int?      // in minutes (calculated)
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, startTime])
+}
+
+// Diaper change logs
+model DiaperLog {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Diaper details
+  type            String    // 'wet', 'dirty', 'both', 'dry'
+  notes           String?
+  
+  // Timing
+  changedAt       DateTime  @default(now())
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, changedAt])
+}
+
+// Health records (doctor visits, vaccinations, growth)
+model HealthRecord {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Record details
+  type            String    // 'checkup', 'vaccination', 'growth', 'illness', 'milestone'
+  title           String
+  description     String?
+  notes           String?
+  
+  // Health metrics (JSON stored as string for SQLite)
+  metrics         String    @default("{}") // { weight: 12.5, height: 65, temperature: 98.6 }
+  
+  // Provider info
+  provider        String?   // Doctor/clinic name
+  nextAppointment DateTime?
+  
+  recordDate      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, recordDate])
+}
+
+// Potty training logs
+model PottyLog {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Potty event details  
+  type            String    // 'attempt', 'success', 'accident'
+  notes           String?
+  
+  // Timing
+  timestamp       DateTime  @default(now())
+  
+  // Tracking
+  loggedById      String?   // Parent who logged it
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, timestamp])
+}
+
+// Screen time tracking logs
+model ScreenTimeLog {
+  id              String    @id @default(cuid())
+  childId         String
+  child           Child     @relation(fields: [childId], references: [id])
+  
+  // Session details
+  type            String    // 'session_start', 'session_end', 'limit_warning', 'limit_exceeded'
+  app             String?   // App/interface being used
+  durationMinutes Int?      // For session_end events
+  sessionId       String?   // To match start/end events
+  
+  // Timing
+  timestamp       DateTime  @default(now())
+  
+  // Additional info
+  notes           String?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([childId, timestamp])
+  @@index([childId, type])
+}
+
+// School Readiness Assessment
+model SchoolReadinessSkill {
+  id          String    @id @default(cuid())
+  childId     String
+  category    String    // 'social', 'emotional', 'cognitive', 'physical', 'communication'
+  skill       String    // Specific skill being assessed
+  level       Int       // 1-4 scale (1=emerging, 2=developing, 3=proficient, 4=advanced)
+  notes       String?
+  assessedAt  DateTime  @default(now())
+  assessedBy  String?   // User ID of who performed the assessment
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  
+  @@unique([childId, category, skill])
 }

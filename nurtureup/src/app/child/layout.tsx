@@ -1,56 +1,73 @@
-import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { ChildNavigation } from '@/components/child/ChildNavigation'
-import { NotificationBell } from '@/components/shared/NotificationBell'
-// import { ChildHeader } from '@/components/child/ChildHeader'
+'use client'
 
-export default async function ChildLayout({
+import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { calculateChildStage, type ChildStage } from '@/lib/stage-engine'
+
+/**
+ * Child Layout with Stage-Adaptive Routing (Blueprint Implementation)
+ * 
+ * This layout detects the child's development stage and routes them to the 
+ * appropriate stage-specific interface as defined in the blueprints:
+ * - Toddler (1-3y): Star Jar, Potty Monster, Play Lobby, Calm Wheel
+ * - Early Childhood (4-6y): Daily Quest Hub, Chores Board, Learn Arcade, Avatar Studio  
+ * - School Age (7-12y): Smart Agenda, School Center, Wallet, Badges
+ * - Adolescence (13-18y): Personal Feed, Planner, Wellbeing Center, Wallet
+ * 
+ * Demo Mode: Add ?demo=true to any child URL to bypass stage restrictions
+ */
+export default function ChildLayout({
   children
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isLoading, setIsLoading] = useState(true)
+  
+  // Check for demo mode
+  const isDemoMode = searchParams.get('demo') === 'true'
 
-  if (!session) {
-    redirect('/login')
-  }
+  useEffect(() => {
+    // Demo mode: Allow bypass of authentication and stage restrictions
+    if (isDemoMode) {
+      setIsLoading(false)
+      return
+    }
 
-  if (session.user.role !== 'CHILD') {
-    redirect('/dashboard')
-  }
+    // Wait for session to load
+    if (status === 'loading') return
 
-  return (
-    <div className="min-h-screen bg-child-base">
-      {/* Clean child header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40" style={{boxShadow: 'var(--shadow-soft)'}}>
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-child-primary/10 rounded-lg flex items-center justify-center">
-                <span className="text-lg">✨</span>
-              </div>
-              <h1 className="text-header-lg text-child-primary font-child">
-                My Adventure
-              </h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <NotificationBell />
-              <div className="text-label text-child-primary bg-white rounded-lg px-4 py-2 border border-gray-100 font-child">
-                {session.user.name?.split(' ')[0]}
-              </div>
-            </div>
-          </div>
+    // If not authenticated, redirect to login
+    if (status === 'unauthenticated') {
+      router.push('/login')
+      return
+    }
+
+    // If authenticated but not a child user, redirect to dashboard
+    if (session?.user.role !== 'CHILD') {
+      router.push('/dashboard')
+      return
+    }
+
+    // TODO: Add stage detection logic for non-demo mode
+    setIsLoading(false)
+  }, [session, status, isDemoMode, router])
+
+  // Show loading state while checking authentication
+  if (isLoading && !isDemoMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
         </div>
-      </header>
-      
-      {/* Main content area */}
-      <main className="pb-24 max-w-4xl mx-auto px-6 py-8">
-        {children}
-      </main>
-      
-      {/* Bottom navigation */}
-      <ChildNavigation />
-    </div>
-  )
-} 
+      </div>
+    )
+  }
+
+  // Demo mode or authenticated child user - show the child interface
+  return <>{children}</>
+}

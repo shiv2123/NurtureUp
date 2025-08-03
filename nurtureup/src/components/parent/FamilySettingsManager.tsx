@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -102,9 +102,9 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
         
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <TabsContent value="general" className="space-y-6">
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
                   Family Information
                 </CardTitle>
@@ -128,15 +128,15 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                   <Label>Family Members</Label>
                   <div className="space-y-2 mt-2">
                     {family.children.map((child) => (
-                      <div key={child.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                      <div key={child.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="text-2xl">{child.avatar || '👤'}</div>
                           <div>
                             <div className="font-medium">{child.nickname}</div>
-                            <div className="text-sm text-black">{child.user?.email}</div>
+                            <div className="text-sm text-muted-foreground">{child.user?.email}</div>
                           </div>
                         </div>
-                        <div className="text-sm text-black">
+                        <div className="text-sm text-foreground">
                           Level {child.level}
                         </div>
                       </div>
@@ -146,9 +146,9 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
                   Task Management
                 </CardTitle>
@@ -165,7 +165,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                       setValueAs: (v) => v === '' ? null : parseInt(v) 
                     })}
                   />
-                  <p className="text-xs text-black mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Leave empty for no limit. Recommended: 3-5 tasks per day.
                   </p>
                 </div>
@@ -174,9 +174,9 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
           </TabsContent>
           
           <TabsContent value="rewards" className="space-y-6">
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-sunny-yellow" />
                   Reward System
                 </CardTitle>
@@ -185,7 +185,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <Label>Stars to Coins Conversion</Label>
-                    <div className="text-sm text-black">
+                    <div className="text-sm text-foreground">
                       {starToCoinsRatio} stars = 1 coin
                     </div>
                   </div>
@@ -197,26 +197,26 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                     step={1}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-xs text-black mt-2">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-2">
                     <span>1 star = 1 coin</span>
                     <span>50 stars = 1 coin</span>
                   </div>
                 </div>
 
-                <div className="bg-sky-blue/10 p-4 rounded-lg">
-                  <h4 className="font-medium text-black mb-2">Preview</h4>
+                <div className="bg-primary/5 p-4 rounded-lg">
+                  <h4 className="font-medium text-foreground mb-2">Preview</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span>Easy task (5 stars)</span>
                       <span className="flex items-center gap-1">
-                        <Coins className="w-4 h-4 text-mint-green" />
+                        <Coins className="w-4 h-4 text-green-600" />
                         {Math.floor(5 / starToCoinsRatio)} coin{Math.floor(5 / starToCoinsRatio) !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Hard task (25 stars)</span>
                       <span className="flex items-center gap-1">
-                        <Coins className="w-4 h-4 text-mint-green" />
+                        <Coins className="w-4 h-4 text-green-600" />
                         {Math.floor(25 / starToCoinsRatio)} coin{Math.floor(25 / starToCoinsRatio) !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -227,9 +227,9 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
           </TabsContent>
           
           <TabsContent value="features" className="space-y-6">
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <Settings className="w-5 h-5" />
                   Feature Controls
                 </CardTitle>
@@ -238,7 +238,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base font-medium">Learning Arcade</Label>
-                    <p className="text-sm text-black">
+                    <p className="text-sm text-muted-foreground">
                       Educational games and quizzes for children
                     </p>
                   </div>
@@ -251,7 +251,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base font-medium">Virtual Pets</Label>
-                    <p className="text-sm text-black">
+                    <p className="text-sm text-muted-foreground">
                       Each child gets a virtual pet to care for
                     </p>
                   </div>
@@ -264,7 +264,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base font-medium">Community Features</Label>
-                    <p className="text-sm text-black">
+                    <p className="text-sm text-muted-foreground">
                       Connect with other families (coming soon)
                     </p>
                   </div>
@@ -289,7 +289,7 @@ export function FamilySettingsManager({ family }: FamilySettingsManagerProps) {
             <Button 
               type="submit" 
               disabled={isSaving}
-              className="bg-sage-green hover:bg-sage-green/90"
+              variant="primary"
             >
               {isSaving ? (
                 <>Saving...</>

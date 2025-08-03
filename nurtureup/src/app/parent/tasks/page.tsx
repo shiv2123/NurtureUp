@@ -2,22 +2,25 @@
 
 import { TaskList } from '@/components/parent/TaskList'
 import { TaskForge } from '@/components/parent/TaskForge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
-import { Sparkles, Target, TrendingUp, Clock } from 'lucide-react'
+import { Target, Plus, CheckSquare, Clock, Archive, CheckCircle, Calendar, Repeat } from 'lucide-react'
 
 export default function TasksPage() {
   const [forgeOpen, setForgeOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [children, setChildren] = useState([])
+  const [activeTab, setActiveTab] = useState('active')
 
   // Fetch children for task assignment
   useEffect(() => {
     async function fetchChildren() {
       try {
-        const res = await fetch('/api/child')
+        const res = await fetch('/api/children')
         if (res.ok) {
           const data = await res.json()
-          setChildren(data)
+          setChildren(data.children || [])
         }
       } catch (error) {
         console.error('Failed to fetch children:', error)
@@ -70,26 +73,58 @@ export default function TasksPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Clean Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-800 mb-2">Task Manager</h1>
-            <p className="text-slate-600 text-lg">
-              Create and manage tasks for your family
-            </p>
-          </div>
-          <button 
-            onClick={() => setForgeOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            <Sparkles className="w-5 h-5 mr-2 inline" />
-            Create Task
-          </button>
-        </div>
+  const tabs = [
+    { id: 'active', label: 'Active', icon: Target },
+    { id: 'scheduled', label: 'Scheduled', icon: Clock },
+    { id: 'completed', label: 'Completed', icon: CheckCircle },
+    { id: 'archived', label: 'Archived', icon: Archive }
+  ]
 
+  return (
+    <div className="min-h-screen bg-app-bg">
+      {/* Header */}
+      <header className="header-glass sticky top-0 z-40">
+        <div className="container-modern">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gradient-primary">Task Manager</h1>
+              <p className="text-sm text-slate-600">Create and manage family tasks</p>
+            </div>
+            <Button
+              variant="default"
+              onClick={() => setForgeOpen(true)}
+              size="fab"
+              className="fab"
+            >
+              <Plus className="w-6 h-6" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container-modern pb-20">
+        {/* Tab Navigation */}
+        <Card className="mb-6 hover-scale">
+          <CardContent className="p-1">
+            <div className="flex">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <Button
+                    key={tab.id}
+                    variant={activeTab === tab.id ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setActiveTab(tab.id)}
+                    className="flex-1 flex items-center justify-center gap-2"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </Button>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Task Forge Dialog */}
         <TaskForge
@@ -100,13 +135,18 @@ export default function TasksPage() {
         />
 
         {/* Task List */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-slate-800">Current Tasks</h2>
-          </div>
-          <TaskList key={refreshKey} />
-        </div>
-      </div>
+        <Card>
+          <TaskList key={`${refreshKey}-${activeTab}`} filterType={activeTab} />
+        </Card>
+      </main>
+
+      {/* Floating Action Button */}
+      <Button 
+        variant="primary"
+        position="bottom-right"
+        icon={<Plus className="h-6 w-6" />}
+        onClick={() => setForgeOpen(true)}
+      />
     </div>
   )
 } 

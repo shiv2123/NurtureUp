@@ -1,8 +1,8 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
+
 import { Progress } from '@/components/ui/progress'
 import { 
   Calendar, 
@@ -71,12 +71,12 @@ export default async function ProgressHubPage() {
         <TabsContent value="timeline" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Timeline Controls */}
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="text-sm">📅 Timeline View</CardTitle>
+                <CardTitle level={3} className="text-sm">📅 Timeline View</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
+                <Button variant="gradient" className="w-full bg-green-600 hover:bg-green-700">
                   <Camera className="w-4 h-4 mr-2" />
                   Add Milestone
                 </Button>
@@ -107,9 +107,9 @@ export default async function ProgressHubPage() {
 
             {/* Timeline Feed */}
             <div className="lg:col-span-3">
-              <Card>
+              <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle level={3} className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-green-600" />
                       Family Memories
@@ -124,7 +124,7 @@ export default async function ProgressHubPage() {
                     <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                     <h3 className="text-lg font-medium mb-2">Your Family Timeline Awaits</h3>
                     <p className="mb-4">Capture precious moments, milestones, and achievements</p>
-                    <Button className="bg-green-600 hover:bg-green-700">
+                    <Button variant="primary" className="bg-green-600 hover:bg-green-700">
                       <Camera className="w-4 h-4 mr-2" />
                       Add Your First Milestone
                     </Button>
@@ -139,9 +139,9 @@ export default async function ProgressHubPage() {
         <TabsContent value="achievements" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Achievement Stats */}
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="text-sm">🏆 Badge Summary</CardTitle>
+                <CardTitle level={3} className="text-sm">🏆 Badge Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -178,9 +178,9 @@ export default async function ProgressHubPage() {
 
             {/* Badge Gallery */}
             <div className="lg:col-span-3">
-              <Card>
+              <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle level={3} className="flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-yellow-600" />
                     Achievement Gallery
                   </CardTitle>
@@ -208,9 +208,9 @@ export default async function ProgressHubPage() {
         <TabsContent value="insights" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Family Performance */}
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-blue-600" />
                   Family Performance
                 </CardTitle>
@@ -259,9 +259,9 @@ export default async function ProgressHubPage() {
             </Card>
 
             {/* Individual Progress */}
-            <Card>
+            <Card variant="elevated">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <Heart className="w-5 h-5 text-pink-600" />
                   Individual Progress
                 </CardTitle>
@@ -293,9 +293,9 @@ export default async function ProgressHubPage() {
             </Card>
 
             {/* Weekly Pulse Report */}
-            <Card className="lg:col-span-2">
+            <Card variant="elevated" className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle level={3} className="flex items-center gap-2">
                   <Clock className="w-5 h-5 text-purple-600" />
                   Weekly Pulse Report
                 </CardTitle>
